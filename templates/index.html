@@ -8,5 +8,17 @@
 <body>
     <h1>MorphTrace</h1>
     <p>Digital Image Forensics &amp; Manipulation Detection</p>
+
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="image">Select an image:</label>
+        <input
+            type="file"
+            id="image"
+            name="image"
+            accept=".jpg,.jpeg,.png"
+            required
+        >
+        <button type="submit">Upload Image</button>
+    </form>
 </body>
 </html>
