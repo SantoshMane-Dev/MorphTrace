@@ -1,8 +1,10 @@
 from pathlib import Path
 from uuid import uuid4
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
+
+from forensic.metadata.analyzer import analyze_metadata
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -41,9 +43,27 @@ def create_app():
             return "Unsupported file type", 400
 
         unique_name = f"{uuid4().hex}.{extension}"
-        file.save(UPLOAD_DIR / unique_name)
+        file_path = UPLOAD_DIR / unique_name
+        file.save(file_path)
 
-        return redirect(url_for("index"))
+        return redirect(url_for("analyze", filename=unique_name))
+
+    @app.get("/analyze/<filename>")
+    def analyze(filename):
+        file_path = UPLOAD_DIR / filename
+
+        if not file_path.exists():
+            return "Image not found", 404
+
+        try:
+            metadata = analyze_metadata(file_path)
+        except Exception:
+            return "Unable to analyze image", 400
+
+        return jsonify({
+            "status": "success",
+            "analysis": metadata
+        })
 
     return app
 
