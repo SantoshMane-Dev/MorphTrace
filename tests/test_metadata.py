@@ -4,11 +4,17 @@ from forensic.metadata.analyzer import analyze_metadata
 
 
 def test_metadata_analysis():
-    image_path = Path("tests/sample.jpg")
+    uploads = Path("uploads")
 
-    result = analyze_metadata(image_path)
+    source = next(
+        path for path in uploads.iterdir()
+        if path.suffix.lower() in {".jpg", ".jpeg", ".png"}
+    )
 
-    assert result["format"] == "JPEG"
+    result = analyze_metadata(source)
+
+    assert result["format"] in {"JPEG", "PNG"}
     assert result["width"] > 0
     assert result["height"] > 0
     assert "exif" in result
+    assert "evidence" in result
