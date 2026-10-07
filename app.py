@@ -4,8 +4,10 @@ from uuid import uuid4
 from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
+from forensic.aggregation.analyzer import aggregate_evidence
 from forensic.metadata.analyzer import analyze_metadata
 from forensic.ela.analyzer import analyze_ela
+from forensic.copy_move.analyzer import analyze_copy_move
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -64,13 +66,27 @@ def create_app():
             ela_path = RESULTS_DIR / f"{file_path.stem}_ela.png"
             ela = analyze_ela(file_path, ela_path)
 
+            copy_move_path = RESULTS_DIR / f"{file_path.stem}_copy_move.png"
+            copy_move = analyze_copy_move(
+                file_path,
+                copy_move_path
+            )
+
+            aggregation = aggregate_evidence(
+                metadata,
+                ela,
+                copy_move
+            )
+
         except Exception:
             return "Unable to analyze image", 400
 
         return jsonify({
             "status": "success",
             "metadata": metadata,
-            "ela": ela
+            "ela": ela,
+            "copy_move": copy_move,
+            "assessment": aggregation,
         })
 
     return app
