@@ -5,10 +5,12 @@ from flask import Flask, jsonify, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
 from forensic.metadata.analyzer import analyze_metadata
+from forensic.ela.analyzer import analyze_ela
 
 
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
+RESULTS_DIR = BASE_DIR / "results"
 
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 
@@ -17,6 +19,7 @@ def create_app():
     app = Flask(__name__)
 
     UPLOAD_DIR.mkdir(exist_ok=True)
+    RESULTS_DIR.mkdir(exist_ok=True)
 
     @app.get("/")
     def index():
@@ -57,12 +60,17 @@ def create_app():
 
         try:
             metadata = analyze_metadata(file_path)
+
+            ela_path = RESULTS_DIR / f"{file_path.stem}_ela.png"
+            ela = analyze_ela(file_path, ela_path)
+
         except Exception:
             return "Unable to analyze image", 400
 
         return jsonify({
             "status": "success",
-            "analysis": metadata
+            "metadata": metadata,
+            "ela": ela
         })
 
     return app
