@@ -8,6 +8,8 @@ from forensic.aggregation.analyzer import aggregate_evidence
 from forensic.metadata.analyzer import analyze_metadata
 from forensic.ela.analyzer import analyze_ela
 from forensic.copy_move.analyzer import analyze_copy_move
+from forensic.compression.analyzer import analyze_compression
+from forensic.noise.analyzer import analyze_noise
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -72,10 +74,15 @@ def create_app():
                 copy_move_path
             )
 
+            compression = analyze_compression(file_path)
+            noise = analyze_noise(file_path)
+
             aggregation = aggregate_evidence(
                 metadata,
                 ela,
-                copy_move
+                copy_move,
+                compression,
+                noise
             )
 
         except Exception:
@@ -86,6 +93,8 @@ def create_app():
             "metadata": metadata,
             "ela": ela,
             "copy_move": copy_move,
+            "compression": compression,
+            "noise": noise,
             "assessment": aggregation,
         })
 
