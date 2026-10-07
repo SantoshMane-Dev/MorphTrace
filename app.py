@@ -1,7 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
-from flask import Flask, jsonify, redirect, render_template, request, url_for
+from flask import Flask, jsonify, redirect, render_template, request, send_from_directory, url_for
 from werkzeug.utils import secure_filename
 
 from forensic.aggregation.analyzer import aggregate_evidence
@@ -54,6 +54,16 @@ def create_app():
         file.save(file_path)
 
         return redirect(url_for("analyze", filename=unique_name))
+
+    @app.get("/results/<filename>")
+    def result_file(filename):
+        file_path = RESULTS_DIR / filename
+
+        if not file_path.exists():
+            return "Result file not found", 404
+
+        return send_from_directory(RESULTS_DIR, filename)
+
 
     @app.get("/analyze/<filename>")
     def analyze(filename):
