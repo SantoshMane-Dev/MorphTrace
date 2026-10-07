@@ -45,6 +45,50 @@
     </section>
 
     <section class="info-card">
+        <h2>ELA Visualization</h2>
+
+        <p>
+            Error Level Analysis highlights areas with different
+            recompression characteristics.
+        </p>
+
+        <img
+            src="{{ url_for('result_file', filename=ela.output.split('/')[-1]) }}"
+            alt="ELA forensic analysis output"
+            style="max-width: 100%; height: auto;"
+        >
+    </section>
+
+    <section class="info-card">
+        <h2>Copy-Move Visualization</h2>
+
+        <p>
+            Marked points indicate potential duplicated feature matches.
+            These matches require forensic review and are not proof of copying.
+        </p>
+
+        <img
+            src="{{ url_for('result_file', filename=copy_move.output.split('/')[-1]) }}"
+            alt="Copy-move forensic analysis output"
+            style="max-width: 100%; height: auto;"
+        >
+
+        {% if copy_move.suspicious_regions %}
+            <h3>Localized Evidence</h3>
+
+            {% for region in copy_move.suspicious_regions %}
+            <p>
+                Point A: {{ region.point_a }} |
+                Point B: {{ region.point_b }} |
+                Descriptor distance: {{ region.distance }}
+            </p>
+            {% endfor %}
+        {% else %}
+            <p>No potential copy-move matches were detected.</p>
+        {% endif %}
+    </section>
+
+    <section class="info-card">
         <h2>Technique Results</h2>
         <p><strong>ELA score:</strong> {{ ela.score }}</p>
         <p><strong>Copy-move matches:</strong> {{ copy_move.matches }}</p>
@@ -57,12 +101,6 @@
         <p><strong>Format:</strong> {{ metadata.format }}</p>
         <p><strong>Dimensions:</strong> {{ metadata.width }} × {{ metadata.height }}</p>
         <p><strong>EXIF entries:</strong> {{ metadata.exif|length }}</p>
-    </section>
-
-    <section class="info-card">
-        <h2>Forensic Outputs</h2>
-        <p>ELA analysis output generated.</p>
-        <p>Copy-move analysis output generated.</p>
     </section>
 
     <p>
