@@ -88,15 +88,15 @@ def create_app():
         except Exception:
             return "Unable to analyze image", 400
 
-        return jsonify({
-            "status": "success",
-            "metadata": metadata,
-            "ela": ela,
-            "copy_move": copy_move,
-            "compression": compression,
-            "noise": noise,
-            "assessment": aggregation,
-        })
+        return render_template(
+            "results.html",
+            metadata=metadata,
+            ela=ela,
+            copy_move=copy_move,
+            compression=compression,
+            noise=noise,
+            assessment=aggregation,
+        )
 
     return app
 

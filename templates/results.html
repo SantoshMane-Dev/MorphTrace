@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MorphTrace Analysis</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<main class="container">
+
+    <header class="hero">
+        <h1>MorphTrace Analysis</h1>
+        <p>{{ metadata.filename }}</p>
+    </header>
+
+    <section class="upload-card">
+        <h2>{{ assessment.assessment }}</h2>
+        <p>
+            Manipulation signal:
+            <strong>{{ "%.2f"|format(assessment.manipulation_likelihood * 100) }}%</strong>
+        </p>
+        <p class="notice">
+            This is a heuristic forensic signal, not proof of manipulation.
+        </p>
+    </section>
+
+    <section class="info-card">
+        <h2>Forensic Evidence</h2>
+
+        {% if assessment.evidence %}
+            {% for item in assessment.evidence %}
+            <div>
+                <strong>{{ item.technique }}</strong>
+                <p>{{ item.finding }}</p>
+                <small>
+                    Severity: {{ item.severity }} |
+                    Localized: {{ "Yes" if item.localized else "No" }}
+                </small>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No forensic evidence requiring review was detected.</p>
+        {% endif %}
+    </section>
+
+    <section class="info-card">
+        <h2>Technique Results</h2>
+        <p><strong>ELA score:</strong> {{ ela.score }}</p>
+        <p><strong>Copy-move matches:</strong> {{ copy_move.matches }}</p>
+        <p><strong>Compression score:</strong> {{ compression.score }}</p>
+        <p><strong>Noise variation:</strong> {{ noise.noise_variation }}</p>
+    </section>
+
+    <section class="info-card">
+        <h2>Image Information</h2>
+        <p><strong>Format:</strong> {{ metadata.format }}</p>
+        <p><strong>Dimensions:</strong> {{ metadata.width }} × {{ metadata.height }}</p>
+        <p><strong>EXIF entries:</strong> {{ metadata.exif|length }}</p>
+    </section>
+
+    <section class="info-card">
+        <h2>Forensic Outputs</h2>
+        <p>ELA analysis output generated.</p>
+        <p>Copy-move analysis output generated.</p>
+    </section>
+
+    <p>
+        <a href="{{ url_for('index') }}">Analyze another image</a>
+    </p>
+
+</main>
+</body>
+</html>
