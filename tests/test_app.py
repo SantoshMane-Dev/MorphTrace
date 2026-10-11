@@ -110,5 +110,5 @@ def test_analysis_includes_ml_result_when_model_exists(tmp_path):
     response = client.get(analysis_path)
 
     assert response.status_code == 200
-    assert b"ML Classification" in response.data
+    assert b"ML insight" in response.data
     assert b"Predicted class" in response.data

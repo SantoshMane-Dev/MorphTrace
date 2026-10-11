@@ -1,252 +1,147 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="MorphTrace digital image forensic analysis results">
-    <title>MorphTrace | Forensic Analysis Results</title>
+    <title>MorphTrace | Investigation Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-<main class="container">
-
-    <header class="hero">
-        <h1>MorphTrace</h1>
-        <p>Digital Image Forensics — Analysis Report</p>
-        <p><strong>File:</strong> {{ metadata.filename }}</p>
+<body class="results-page">
+<div class="page-shell results-shell">
+    <header class="topbar results-topbar">
+        <div class="brand-wrap">
+            <div class="brand-mark">M</div>
+            <div>
+                <span class="brand-name">MorphTrace</span>
+                <span class="brand-tag">Investigation report</span>
+            </div>
+        </div>
+        <a href="{{ url_for('index') }}" class="ghost-link">Analyze another image</a>
     </header>
 
-    <section class="upload-card">
-        <h2>{{ assessment.assessment }}</h2>
+    <main class="results-layout">
+        <section class="verdict-panel">
+            <div class="image-preview-wrap">
+                <img src="{{ image_url }}" alt="Uploaded investigation image" class="image-preview">
+            </div>
 
-        <p>
-            <strong>Heuristic evidence score:</strong>
-            {{ "%.2f"|format(assessment.evidence_score * 100) }}/100
-        </p>
+            <div class="verdict-content">
+                <p class="eyebrow">Verdict</p>
+                <h1>{{ assessment.assessment }}</h1>
 
-        <p>
-            <strong>Findings requiring review:</strong>
-            {{ assessment.review_count }}
-        </p>
+                <div class="score-meter">
+                    <div class="score-ring" style="--score: {{ manipulation_score }};">
+                        <span>{{ manipulation_score }}%</span>
+                    </div>
+                    <div class="score-copy">
+                        <p class="label">Manipulation likelihood</p>
+                        <strong>{{ manipulation_score }}%</strong>
+                        <small>Authenticity confidence: {{ authenticity_score }}%</small>
+                    </div>
+                </div>
 
-        <p>
-            <strong>Findings with localization:</strong>
-            {{ assessment.localized_evidence_count }}
-        </p>
+                <div class="mini-metrics">
+                    <div>
+                        <span class="label">Review signals</span>
+                        <strong>{{ assessment.review_count }}</strong>
+                    </div>
+                    <div>
+                        <span class="label">Localized clues</span>
+                        <strong>{{ assessment.localized_evidence_count }}</strong>
+                    </div>
+                    <div>
+                        <span class="label">Format</span>
+                        <strong>{{ metadata.format }}</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <p class="notice">
-            {{ assessment.score_interpretation }}
-            This score is not a probability of manipulation. The weights
-            and thresholds require validation against a representative dataset.
-        </p>
-    </section>
+        <section class="signals-panel">
+            <div class="panel-header-row">
+                <h2>Key signals</h2>
+                <span class="badge">Priority overview</span>
+            </div>
 
-    <section class="info-card">
-        <h2>ML Classification</h2>
-
-        {% if ml and ml.available %}
-            <p><strong>Predicted class:</strong> {{ ml.predicted_class }}</p>
-            <p><strong>Model confidence:</strong> {{ ml.model_score_percent }}%</p>
-            <p class="notice">{{ ml.score_interpretation }}</p>
-
-            {% for label, score in ml.model_scores.items() %}
+            {% for name, score in assessment.signals.items() %}
             <div class="signal-row">
-                <p><strong>{{ label|title }}:</strong> {{ score }}%</p>
-                <div
-                    role="img"
-                    aria-label="ML score for {{ label }}: {{ score }} percent"
-                    style="width: 100%; background: #e5e7eb; border-radius: 4px; overflow: hidden;"
-                >
-                    <div
-                        style="height: 10px; width: {{ score }}%; background: #2d6a4f;"
-                    ></div>
+                <div class="signal-heading">
+                    <span class="signal-name">{{ name|replace("_", " ")|title }}</span>
+                    <span class="signal-score">{{ "%.2f"|format(score * 100) }}%</span>
+                </div>
+                <div class="signal-track">
+                    <div class="signal-fill" style="width: {{ score * 100 }}%;"></div>
                 </div>
             </div>
             {% endfor %}
-        {% else %}
-            <p>
-                No trained ML model is currently available for this project instance.
-                Train the classifier with the training script before using ML-based classification.
-            </p>
-        {% endif %}
-    </section>
+        </section>
 
-    <section class="info-card">
-        <h2>Forensic Evidence</h2>
-
-        {% if assessment.evidence %}
-            {% for item in assessment.evidence %}
-            <article class="evidence-item">
-                <h3>{{ item.technique|replace("_", " ")|title }}</h3>
-                <p>{{ item.finding }}</p>
-                <p>
-                    <strong>Severity:</strong> {{ item.severity|title }}
-                    |
-                    <strong>Localized:</strong>
-                    {{ "Yes" if item.localized else "No" }}
-                </p>
-            </article>
-            {% endfor %}
-        {% else %}
-            <p>
-                No findings triggered the current review thresholds.
-                This does not establish that the image is authentic.
-            </p>
-        {% endif %}
-    </section>
-
-    <section class="info-card">
-        <h2>Signal Breakdown</h2>
-        <p>
-            Individual analyzer scores are heuristic signals, not calibrated
-            probabilities.
-        </p>
-
-        {% for name, score in assessment.signals.items() %}
-        <div class="signal-row">
-            <p>
-                <strong>{{ name|replace("_", " ")|title }}:</strong>
-                {{ "%.4f"|format(score) }}
-            </p>
-            <div
-                role="img"
-                aria-label="{{ name }} signal score {{ score }}"
-                style="width: 100%; background: #e5e7eb; border-radius: 4px; overflow: hidden;"
-            >
-                <div
-                    style="height: 10px; width: {{ score * 100 }}%; background: #4776a8;"
-                ></div>
+        {% if ml and ml.available %}
+        <section class="signals-panel">
+            <div class="panel-header-row">
+                <h2>ML insight</h2>
+                <span class="badge">AI evidence</span>
             </div>
-        </div>
-        {% endfor %}
-    </section>
 
-    <section class="info-card">
-        <h2>Error Level Analysis (ELA)</h2>
+            <div class="ml-summary">
+                <div>
+                    <span class="label">Predicted class</span>
+                    <strong>{{ ml.predicted_class }}</strong>
+                </div>
+                <div>
+                    <span class="label">Confidence</span>
+                    <strong>{{ ml.model_score_percent }}%</strong>
+                </div>
+            </div>
 
-        <p>
-            ELA compares the image with a recompressed version. Differences
-            may arise from editing, but also from normal image content and
-            compression history.
-        </p>
-
-        <p><strong>ELA score:</strong> {{ ela.score }}</p>
-        <p><strong>Mean difference:</strong> {{ ela.mean_difference }}</p>
-        <p><strong>Maximum difference:</strong> {{ ela.max_difference }}</p>
-
-        {% if ela.output %}
-        <img
-            src="{{ url_for('result_file', filename=ela.output.rsplit('/', 1)[-1]) }}"
-            alt="Error Level Analysis visualization"
-            style="max-width: 100%; height: auto;"
-        >
-        {% else %}
-        <p>ELA visualization is unavailable.</p>
-        {% endif %}
-    </section>
-
-    <section class="info-card">
-        <h2>Copy-Move Analysis</h2>
-
-        <p>
-            Feature matches can indicate duplicated visual patterns.
-            They may also occur naturally in repetitive textures and scenes.
-        </p>
-
-        <p><strong>Potential feature matches:</strong> {{ copy_move.matches }}</p>
-        <p><strong>Copy-move score:</strong> {{ copy_move.score }}</p>
-
-        {% if copy_move.output %}
-        <img
-            src="{{ url_for('result_file', filename=copy_move.output.rsplit('/', 1)[-1]) }}"
-            alt="Copy-move feature match visualization"
-            style="max-width: 100%; height: auto;"
-        >
-        {% else %}
-        <p>Copy-move visualization is unavailable.</p>
-        {% endif %}
-
-        {% if copy_move.suspicious_regions %}
-        <h3>Potentially Relevant Feature Matches</h3>
-        <ul>
-            {% for region in copy_move.suspicious_regions %}
-            <li>
-                Point A: {{ region.point_a }}
-                — Point B: {{ region.point_b }}
-                — Descriptor distance: {{ region.distance }}
-            </li>
+            {% for label, score in ml.model_scores.items() %}
+            <div class="signal-row compact-row">
+                <div class="signal-heading">
+                    <span class="signal-name">{{ label|title }}</span>
+                    <span class="signal-score">{{ score }}%</span>
+                </div>
+                <div class="signal-track">
+                    <div class="signal-fill alternate-fill" style="width: {{ score }}%;"></div>
+                </div>
+            </div>
             {% endfor %}
-        </ul>
-        {% else %}
-        <p>No potential copy-move feature matches were returned.</p>
+        </section>
         {% endif %}
-    </section>
 
-    <section class="info-card">
-        <h2>Compression Analysis</h2>
+        <section class="evidence-panel">
+            <div class="panel-header-row">
+                <h2>Important findings</h2>
+                <span class="badge">Evidence</span>
+            </div>
 
-        <p><strong>Heuristic score:</strong> {{ compression.score }}</p>
-        <p>
-            <strong>Mean high-frequency coefficient:</strong>
-            {{ compression.mean_high_frequency }}
-        </p>
-        <p>
-            <strong>Review threshold triggered:</strong>
-            {{ "Yes" if compression.evidence_found else "No" }}
-        </p>
-        <p>
-            This analyzer does not currently localize suspicious image regions.
-        </p>
-    </section>
+            {% if assessment.evidence %}
+                {% for item in assessment.evidence %}
+                <article class="evidence-item">
+                    <div class="evidence-head">
+                        <h3>{{ item.technique|replace("_", " ")|title }}</h3>
+                        <span class="severity severity-{{ item.severity|lower }}">{{ item.severity|title }}</span>
+                    </div>
+                    <p>{{ item.finding }}</p>
+                </article>
+                {% endfor %}
+            {% else %}
+                <p class="empty-state">No strong forensic indicators were triggered in this review.</p>
+            {% endif %}
+        </section>
 
-    <section class="info-card">
-        <h2>Noise Analysis</h2>
-
-        <p><strong>Heuristic score:</strong> {{ noise.score }}</p>
-        <p><strong>Mean noise residual:</strong> {{ noise.mean_noise }}</p>
-        <p><strong>Noise variation:</strong> {{ noise.noise_variation }}</p>
-        <p>
-            <strong>Review threshold triggered:</strong>
-            {{ "Yes" if noise.evidence_found else "No" }}
-        </p>
-        <p>
-            This analyzer does not currently localize suspicious image regions.
-        </p>
-    </section>
-
-    <section class="info-card">
-        <h2>Image Metadata</h2>
-
-        <p><strong>Format:</strong> {{ metadata.format }}</p>
-        <p>
-            <strong>Dimensions:</strong>
-            {{ metadata.width }} × {{ metadata.height }}
-        </p>
-        <p><strong>Color mode:</strong> {{ metadata.mode }}</p>
-        <p><strong>EXIF entries:</strong> {{ metadata.exif|length }}</p>
-
-        {% if metadata.exif %}
-        <h3>EXIF Details</h3>
-        <dl>
-            {% for key, value in metadata.exif.items() %}
-            <dt><strong>{{ key }}</strong></dt>
-            <dd>{{ value }}</dd>
-            {% endfor %}
-        </dl>
-        {% else %}
-        <p>No EXIF metadata was found.</p>
-        {% endif %}
-    </section>
-
-    <footer class="page-footer">
-        <p>
-            MorphTrace provides forensic indicators for further investigation.
-            No individual score or finding independently proves manipulation.
-        </p>
-        <a href="{{ url_for('index') }}">Analyze another image</a>
-    </footer>
-
-</main>
+        <section class="meta-panel">
+            <div class="panel-header-row">
+                <h2>Image details</h2>
+            </div>
+            <div class="meta-grid">
+                <div><span class="label">Dimensions</span><strong>{{ metadata.width }} × {{ metadata.height }}</strong></div>
+                <div><span class="label">Color mode</span><strong>{{ metadata.mode }}</strong></div>
+                <div><span class="label">EXIF entries</span><strong>{{ metadata.exif|length }}</strong></div>
+                <div><span class="label">Source</span><strong>{{ metadata.filename }}</strong></div>
+            </div>
+        </section>
+    </main>
+</div>
 </body>
 </html>

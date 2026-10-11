@@ -120,6 +120,16 @@ def create_app(test_config=None):
 
         return redirect(url_for("analyze", filename=unique_name))
 
+    @app.get("/uploads/<filename>")
+    def uploaded_file(filename):
+        if not UPLOAD_NAME_PATTERN.fullmatch(filename):
+            abort(404)
+
+        if not (upload_dir / filename).is_file():
+            abort(404)
+
+        return send_from_directory(upload_dir, filename)
+
     @app.get("/results/<filename>")
     def result_file(filename):
         # Only serve generated PNG analysis outputs.
@@ -186,6 +196,9 @@ def create_app(test_config=None):
             )
             return "An internal error occurred during image analysis.", 500
 
+        authenticity_score = max(0.0, min(100.0, (1.0 - assessment["evidence_score"]) * 100.0))
+        manipulation_score = max(0.0, min(100.0, assessment["evidence_score"] * 100.0))
+
         return render_template(
             "results.html",
             metadata=metadata,
@@ -195,6 +208,9 @@ def create_app(test_config=None):
             noise=noise,
             assessment=assessment,
             ml=ml,
+            image_url=url_for("uploaded_file", filename=filename),
+            authenticity_score=round(authenticity_score, 1),
+            manipulation_score=round(manipulation_score, 1),
         )
 
     return app
