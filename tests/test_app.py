@@ -8,7 +8,7 @@ from PIL import Image
 from sklearn.dummy import DummyClassifier
 
 from app import create_app
-from forensic.ml.features import FEATURE_VERSION
+from forensic.ml.features import FEATURE_VERSION, extract_features
 
 
 @pytest.fixture
@@ -79,6 +79,14 @@ def test_analysis_rejects_invalid_filename(client):
 def test_analysis_rejects_missing_upload(client):
     response = client.get("/analyze/" + "a" * 32 + ".jpg")
     assert response.status_code == 404
+
+
+def test_extract_features_accepts_pil_image():
+    image = Image.new("RGB", (32, 32), color="blue")
+    features = extract_features(image)
+
+    assert features.shape == (185,)
+    assert np.isfinite(features).all()
 
 
 def test_analysis_includes_ml_result_when_model_exists(tmp_path):

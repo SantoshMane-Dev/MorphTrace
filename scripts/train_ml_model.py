@@ -1,8 +1,13 @@
 import argparse
+import sys
 from pathlib import Path
 
 import numpy as np
 import joblib
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (

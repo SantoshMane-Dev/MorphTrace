@@ -198,6 +198,15 @@ def create_app(test_config=None):
 
         authenticity_score = max(0.0, min(100.0, (1.0 - assessment["evidence_score"]) * 100.0))
         manipulation_score = max(0.0, min(100.0, assessment["evidence_score"] * 100.0))
+        if assessment["evidence_score"] >= 0.60:
+            verdict_state = "manipulated"
+            verdict_label = "Likely manipulated"
+        elif assessment["evidence_score"] >= 0.30:
+            verdict_state = "review"
+            verdict_label = "Needs review"
+        else:
+            verdict_state = "authentic"
+            verdict_label = "Appears authentic"
 
         return render_template(
             "results.html",
@@ -209,6 +218,10 @@ def create_app(test_config=None):
             assessment=assessment,
             ml=ml,
             image_url=url_for("uploaded_file", filename=filename),
+            ela_url=url_for("result_file", filename=generated_files[0].name),
+            copy_move_url=url_for("result_file", filename=generated_files[1].name),
+            verdict_state=verdict_state,
+            verdict_label=verdict_label,
             authenticity_score=round(authenticity_score, 1),
             manipulation_score=round(manipulation_score, 1),
         )

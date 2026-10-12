@@ -8,55 +8,105 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="landing-page">
-    <div class="page-shell">
-        <header class="topbar">
+    <div class="page-shell landing-shell">
+        <header class="topbar landing-topbar">
             <div class="brand-wrap">
-                <div class="brand-mark">M</div>
+                <div class="brand-mark" aria-hidden="true">M</div>
                 <div>
-                    <span class="brand-name">MorphTrace</span>
+                    <span class="brand-name" role="img" aria-label="MorphTrace">
+                        <span aria-hidden="true">M</span><span aria-hidden="true">o</span><span aria-hidden="true">r</span><span aria-hidden="true">p</span><span aria-hidden="true">h</span><span aria-hidden="true">T</span><span aria-hidden="true">r</span><span aria-hidden="true">a</span><span aria-hidden="true">c</span><span aria-hidden="true">e</span>
+                    </span>
                     <span class="brand-tag">Forensic Intelligence</span>
                 </div>
             </div>
         </header>
 
         <main class="landing-hero">
-            <section class="hero-copy">
-                <p class="eyebrow">Digital image forensics</p>
-                <h1>Reveal the signals behind image tampering.</h1>
-                <p class="subtext">
-                    Upload an image and review forensic evidence across metadata,
-                    compression, noise, ELA, and copy-move indicators in one
-                    modern investigation workflow.
-                </p>
+            <div class="hero-layout">
+                <section class="hero-copy-area">
+                    <h1>Trace manipulation before it spreads.</h1>
+                    <p class="hero-subtitle">AI-assisted forensic analysis for image integrity, evidence review, and tamper detection.</p>
 
-                <div class="feature-pills">
-                    <span>Metadata review</span>
-                    <span>ELA analysis</span>
-                    <span>Copy-move detection</span>
-                    <span>ML support</span>
-                </div>
-            </section>
+                    <div class="upload-stage">
+                        <form action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
+                            <div class="upload-box">
+                                <label for="image" class="upload-trigger">
+                                    <span class="upload-icon">◫</span>
+                                    <span class="upload-title">Upload a suspicious image</span>
+                                    <span class="upload-meta">JPG, JPEG, PNG, WebP, AVIF, HEIC</span>
+                                </label>
+                                <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,.webp,.avif,.heic" required>
+                            </div>
+                            <button class="analyze-button" type="submit">
+                                Analyze image <span aria-hidden="true">→</span>
+                            </button>
+                        </form>
 
-            <section class="upload-panel">
-                <div class="panel-header">
-                    <span class="status-dot"></span>
-                    <span>New investigation</span>
-                </div>
+                        <aside class="example-panel">
+                            <h3>Signals in each review</h3>
+                            <div class="example-list">
+                                <span class="example-pill">Metadata mismatch</span>
+                                <span class="example-pill">ELA anomaly</span>
+                                <span class="example-pill">Copy-move pattern</span>
+                                <span class="example-pill">Compression artifact</span>
+                            </div>
+                            <p class="example-copy">One image, multiple forensic signals, gathered into a single review.</p>
+                        </aside>
+                    </div>
 
-                <form action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
-                    <label for="image" class="upload-label">Choose an image</label>
-                    <input
-                        type="file"
-                        id="image"
-                        name="image"
-                        accept=".jpg,.jpeg,.png"
-                        required
-                    >
-                    <small>Supported formats: JPG, JPEG, PNG</small>
-                    <button type="submit">Analyze image</button>
-                </form>
-            </section>
+                    <div class="trust-banner">
+                        <span class="badge-icon">⚡</span>
+                        <span>MorphTrace forensic stack</span>
+                    </div>
+
+                    <div class="media-strip">
+                        <span>Core detection layers</span>
+                        <div class="media-logos">
+                            <span>Metadata</span>
+                            <span>ELA</span>
+                            <span>Noise</span>
+                            <span>ML</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </main>
+
+        <section class="future-section" aria-label="Upcoming modules">
+            <div class="future-header">
+                <p class="section-kicker">In development</p>
+                <h2>Upcoming modules</h2>
+            </div>
+
+            <div class="future-grid">
+                <article class="future-card">
+                    <img class="future-art" src="{{ url_for('static', filename='img/module-video.webp') }}" alt="Illustrated video frame under a forensic scan" loading="lazy">
+                    <div class="future-card-copy">
+                        <span class="future-tag">Coming soon</span>
+                        <h3>Video integrity monitor</h3>
+                        <p>Inspect suspicious frames, edits, and visual inconsistencies across video evidence.</p>
+                    </div>
+                </article>
+
+                <article class="future-card">
+                    <img class="future-art" src="{{ url_for('static', filename='img/module-motion.webp') }}" alt="Layered motion traces visualizing animated media analysis" loading="lazy">
+                    <div class="future-card-copy">
+                        <span class="future-tag">Coming soon</span>
+                        <h3>Animated media analysis</h3>
+                        <p>Trace altered motion, synthetic loops, and suspicious changes between frames.</p>
+                    </div>
+                </article>
+
+                <article class="future-card">
+                    <img class="future-art" src="{{ url_for('static', filename='img/module-audio.webp') }}" alt="Audio waveform and signal display for voice authenticity analysis" loading="lazy">
+                    <div class="future-card-copy">
+                        <span class="future-tag">Coming soon</span>
+                        <h3>Voice authenticity scan</h3>
+                        <p>Review voice recordings for signs of synthetic speech and audio manipulation.</p>
+                    </div>
+                </article>
+            </div>
+        </section>
     </div>
 </body>
 </html>
