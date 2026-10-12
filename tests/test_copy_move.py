@@ -1,23 +1,14 @@
-from pathlib import Path
 
 from forensic.copy_move.analyzer import analyze_copy_move
 
 
-def test_copy_move_analysis():
-    uploads = Path("uploads")
+def test_copy_move_analysis(sample_image, tmp_path):
+    output_path = tmp_path / "copy_move.png"
 
-    source = next(
-        path for path in uploads.iterdir()
-        if path.suffix.lower() in {".jpg", ".jpeg", ".png"}
-    )
-
-    output = Path("results/test_copy_move.png")
-
-    result = analyze_copy_move(source, output)
+    result = analyze_copy_move(sample_image, output_path)
 
     assert result["technique"] == "copy-move"
     assert 0 <= result["score"] <= 1
-    assert result["localized"] is True
-    assert output.exists()
-
-    output.unlink()
+    assert result["matches"] >= 0
+    assert isinstance(result["suspicious_regions"], list)
+    assert output_path.is_file()

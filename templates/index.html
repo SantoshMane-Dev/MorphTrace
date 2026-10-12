@@ -3,22 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MorphTrace</title>
+    <meta name="description" content="MorphTrace digital image forensics dashboard">
+    <title>MorphTrace | Image Forensics</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body>
-    <h1>MorphTrace</h1>
-    <p>Digital Image Forensics &amp; Manipulation Detection</p>
+<body class="landing-page">
+    <div class="page-shell">
+        <header class="topbar">
+            <div class="brand-wrap">
+                <div class="brand-mark">M</div>
+                <div>
+                    <span class="brand-name">MorphTrace</span>
+                    <span class="brand-tag">Forensic Intelligence</span>
+                </div>
+            </div>
+        </header>
 
-    <form action="/upload" method="post" enctype="multipart/form-data">
-        <label for="image">Select an image:</label>
-        <input
-            type="file"
-            id="image"
-            name="image"
-            accept=".jpg,.jpeg,.png"
-            required
-        >
-        <button type="submit">Upload Image</button>
-    </form>
+        <main class="landing-hero">
+            <section class="hero-copy">
+                <p class="eyebrow">Digital image forensics</p>
+                <h1>Reveal the signals behind image tampering.</h1>
+                <p class="subtext">
+                    Upload an image and review forensic evidence across metadata,
+                    compression, noise, ELA, and copy-move indicators in one
+                    modern investigation workflow.
+                </p>
+
+                <div class="feature-pills">
+                    <span>Metadata review</span>
+                    <span>ELA analysis</span>
+                    <span>Copy-move detection</span>
+                    <span>ML support</span>
+                </div>
+            </section>
+
+            <section class="upload-panel">
+                <div class="panel-header">
+                    <span class="status-dot"></span>
+                    <span>New investigation</span>
+                </div>
+
+                <form action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
+                    <label for="image" class="upload-label">Choose an image</label>
+                    <input
+                        type="file"
+                        id="image"
+                        name="image"
+                        accept=".jpg,.jpeg,.png"
+                        required
+                    >
+                    <small>Supported formats: JPG, JPEG, PNG</small>
+                    <button type="submit">Analyze image</button>
+                </form>
+            </section>
+        </main>
+    </div>
 </body>
 </html>
