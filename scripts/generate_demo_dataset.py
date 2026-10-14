@@ -7,7 +7,7 @@ from PIL import Image, ImageFilter
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-DATASET_DIR = BASE_DIR / "data" / "casia"
+DATASET_DIR = BASE_DIR / "data" / "demo"
 AUTHENTIC_DIR = DATASET_DIR / "Au"
 MANIPULATED_DIR = DATASET_DIR / "Tp"
 

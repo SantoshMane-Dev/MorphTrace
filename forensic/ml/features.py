@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageChops, ImageEnhance
 
 
-FEATURE_VERSION = 1
+FEATURE_VERSION = 2
 IMAGE_SIZE = (256, 256)
 
 
@@ -110,8 +110,24 @@ def _extract_feature_vector(source):
         float(np.percentile(np.abs(residual), 90)),
     ])
 
-    block_variances = []
     height, width = gray.shape
+    residual_float = np.abs(residual) / 255.0
+    for row in range(8):
+        for column in range(8):
+            y0, y1 = row * height // 8, (row + 1) * height // 8
+            x0, x1 = column * width // 8, (column + 1) * width // 8
+            gray_block = gray_float[y0:y1, x0:x1]
+            residual_block = residual_float[y0:y1, x0:x1]
+            edge_block = edges[y0:y1, x0:x1]
+            features.extend([
+                float(gray_block.mean()),
+                float(gray_block.std()),
+                float(residual_block.mean()),
+                float(residual_block.std()),
+                float(np.mean(edge_block > 0)),
+            ])
+
+    block_variances = []
 
     for row in range(8):
         for column in range(8):

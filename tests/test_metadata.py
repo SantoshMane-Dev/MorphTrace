@@ -10,3 +10,5 @@ def test_metadata_analysis(sample_image):
     assert result["height"] == 256
     assert isinstance(result["exif"], dict)
     assert isinstance(result["evidence"], list)
+    assert result["container_metadata"]["EXIF"] == "Not embedded"
+    assert result["container_metadata"]["File size"].endswith("bytes")
