@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Review image metadata and forensic signals with MorphTrace">
+    <title>MorphTrace | Image Forensics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="editorial-home inspect-page">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-shell editorial-shell tools-shell">
+        <header class="topbar editorial-topbar">
+            <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS</small></span>
+            </a>
+            <nav class="editorial-nav" aria-label="Main navigation">
+                <a href="{{ url_for('inspect') }}" aria-current="page">Forensics</a>
+                <a href="{{ url_for('convert') }}">Convert</a>
+                <a href="{{ url_for('roadmap') }}">Roadmap</a>
+            </nav>
+        </header>
+
+        <main class="tool-main inspect-main">
+            <section class="tool-intro" aria-labelledby="inspect-title">
+                <p class="section-index">IMAGE AUTHENTICITY REVIEW</p>
+                <h1 id="inspect-title">Put a frame under the lens.</h1>
+                <p>Upload a JPEG or PNG to review metadata, error-level differences, copy-move candidates, compression, and noise.</p>
+            </section>
+
+            <section class="inspect-section inspect-workbench" aria-label="Image review workspace">
+                <div class="inspect-layout">
+                    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="upload-form">
+                        <div class="upload-box editorial-drop-zone">
+                            <label for="image" class="upload-trigger editorial-upload-trigger">
+                                <span class="scan-glyph" aria-hidden="true"><span></span></span>
+                                <span class="upload-title">Drop a frame for review</span>
+                                <span class="upload-meta">or choose one from your device</span>
+                                <span class="format-note">JPEG / PNG / UP TO 16 MB</span>
+                                <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+                            </label>
+                            <img class="upload-preview-image" alt="Selected image preview" hidden>
+                            <div class="upload-preview-caption" aria-live="polite" hidden>
+                                <strong>FRAME SELECTED</strong>
+                                <span class="upload-preview-name"></span>
+                                <button class="rechoose-image" type="button">Replace</button>
+                            </div>
+                        </div>
+                        <div class="analyze-button-wrap" aria-live="polite">
+                            <button class="analyze-button editorial-analyze-button" type="submit">
+                                <span class="analyze-label">Run forensic review <span aria-hidden="true">&#8594;</span></span>
+                                <span class="progress-track" role="progressbar" aria-label="Image analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="progress-bar"></span></span>
+                                <span class="progress-text">0%</span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <aside class="signal-board" aria-label="Analysis layers">
+                        <div class="signal-board-top"><span>ANALYSIS LAYERS</span><span class="signal-live"><i></i> READY</span></div>
+                        <h2>Clues, not verdicts.</h2>
+                        <ol class="signal-list">
+                            <li><span>01</span><span>Metadata history</span><b aria-hidden="true">&#8599;</b></li>
+                            <li><span>02</span><span>Error-level map</span><b aria-hidden="true">&#8599;</b></li>
+                            <li><span>03</span><span>Copy-move traces</span><b aria-hidden="true">&#8599;</b></li>
+                            <li><span>04</span><span>Compression + noise</span><b aria-hidden="true">&#8599;</b></li>
+                            <li><span>05</span><span>ML model signal</span><b aria-hidden="true">&#8599;</b></li>
+                        </ol>
+                        <p class="signal-disclaimer">Automated signals support review. They are not proof of manipulation.</p>
+                    </aside>
+                </div>
+            </section>
+        </main>
+
+        <footer class="editorial-footer"><a href="{{ url_for('convert') }}">Convert an image</a><span>MORPHTRACE / IMAGE REVIEW</span></footer>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

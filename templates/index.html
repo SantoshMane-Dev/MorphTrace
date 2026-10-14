@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="MorphTrace image forensics and labeled image collection workspace">
-    <title>MorphTrace | Image Forensics</title>
+    <meta name="description" content="MorphTrace image forensics and image conversion tools">
+    <title>MorphTrace | Image Tools</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,152 +16,77 @@
         <header class="topbar editorial-topbar">
             <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
                 <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
-                <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS / FIELD DESK</small></span>
+                <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS &amp; TOOLS</small></span>
             </a>
             <nav class="editorial-nav" aria-label="Main navigation">
-                <a href="#inspect">Inspect</a>
-                <a href="#dataset">Image banks</a>
+                <a href="{{ url_for('inspect') }}">Forensics</a>
+                <a href="{{ url_for('convert') }}">Convert</a>
+                <a href="{{ url_for('roadmap') }}">Roadmap</a>
             </nav>
-            <div class="local-status"><span aria-hidden="true"></span> LOCAL WORKSPACE</div>
         </header>
 
         <main>
             <section class="editorial-hero" aria-labelledby="hero-title">
                 <div class="hero-copy">
-                    <p class="case-eyebrow"><span>FIELD NOTE 08</span><span>INTEGRITY UNIT</span></p>
+                    <p class="case-eyebrow"><span>IMAGE AUTHENTICITY</span></p>
                     <h1 id="hero-title">Every image<br>leaves a <em>trace.</em></h1>
-                    <p class="hero-deck">Look closer. MorphTrace gathers visual clues into a careful, explainable image review.</p>
+                    <p class="hero-deck">Review image integrity, inspect evidence, and convert common file formats with practical tools in one place.</p>
                     <div class="hero-actions">
-                        <a class="action-link action-primary" href="#inspect">Inspect an image <span aria-hidden="true">&#8594;</span></a>
-                        <a class="action-link action-secondary" href="#dataset">Curate image banks <span aria-hidden="true">&#8595;</span></a>
+                        <a class="action-link action-primary" href="{{ url_for('inspect') }}">Inspect an image <span aria-hidden="true">&#8594;</span></a>
+                        <a class="action-link action-secondary" href="{{ url_for('convert') }}">Convert a file <span aria-hidden="true">&#8595;</span></a>
                     </div>
-                    <div class="hero-footnote"><span class="footnote-line"></span><span>ONE FRAME / MULTIPLE SIGNALS</span></div>
                 </div>
 
-                <figure class="hero-illustration">
-                    <img src="{{ url_for('static', filename='img/manga-investigator.webp') }}" alt="Original manga-style forensic investigator examining image evidence">
-                    <span class="art-stamp" aria-hidden="true">CASE<br>08</span>
-                    <figcaption><span>VISUAL ANALYST / UNIT 01</span><span>SCAN ACTIVE</span></figcaption>
+                <figure class="hero-illustration forensic-portrait">
+                    <div class="portrait-screen">
+                        <img src="{{ url_for('static', filename='img/forensic-analyst.webp') }}" alt="Woman working with technical imaging equipment">
+                        <span class="portrait-binary portrait-binary-left" aria-hidden="true">01001001<br>10110100<br>00101101<br>11001010<br>01100101<br>10010110</span>
+                        <span class="portrait-binary portrait-binary-right" aria-hidden="true">10110010<br>01001101<br>11100010<br>00110101<br>10011001<br>01101010</span>
+                        <svg class="portrait-dna" viewBox="0 0 80 260" aria-hidden="true" focusable="false">
+                            <path d="M18 8C70 38 70 62 18 92S-34 146 18 176s52 44 0 76M62 8C10 38 10 62 62 92s52 54 0 84-52 44 0 76" />
+                            <path class="dna-rungs" d="M25 19h30M38 43h20M34 68h24M20 91h36M22 117h34M34 143h24M40 169h20M26 194h30M20 220h34M27 244h30" />
+                        </svg>
+                        <span class="portrait-scan" aria-hidden="true"></span>
+                    </div>
+                    <figcaption><span>FORENSIC IMAGE REVIEW</span><span>VISUAL SIGNALS</span></figcaption>
                 </figure>
-                <div class="hero-side-note" aria-hidden="true">PIXEL FORENSICS<br>EST. 2024</div>
             </section>
 
-            <section class="inspect-section" id="inspect" aria-labelledby="inspect-title">
+            <section class="tools-directory" aria-labelledby="tools-title">
                 <div class="section-heading">
                     <div>
-                        <p class="section-index">01 / IMAGE REVIEW</p>
-                        <h2 id="inspect-title">Put a frame under the lens.</h2>
+                        <p class="section-index">IMAGE WORKFLOW</p>
+                        <h2 id="tools-title">Choose a tool.</h2>
                     </div>
-                    <p class="section-aside">Metadata / ELA / Copy-move<br>Compression / Noise / ML</p>
+                    <p class="section-aside">Image review / file conversion<br>More media tools on the roadmap</p>
                 </div>
-
-                <div class="inspect-layout">
-                    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="upload-form">
-                        <div class="upload-box editorial-drop-zone">
-                            <label for="image" class="upload-trigger editorial-upload-trigger">
-                                <span class="scan-glyph" aria-hidden="true"><span></span></span>
-                                <span class="upload-title">Drop a frame for review</span>
-                                <span class="upload-meta">or choose one from your device</span>
-                                <span class="format-note">JPEG / PNG / UP TO 16 MB</span>
-                                <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
-                            </label>
-                            <img class="upload-preview-image" alt="Selected image preview" hidden>
-                            <div class="upload-preview-caption" aria-live="polite" hidden>
-                                <strong>FRAME SELECTED</strong>
-                                <span class="upload-preview-name"></span>
-                                <button class="rechoose-image" type="button">Replace</button>
-                            </div>
-                        </div>
-                        <div class="analyze-button-wrap" aria-live="polite">
-                            <button class="analyze-button editorial-analyze-button" type="submit">
-                                <span class="analyze-label">Run forensic review <span aria-hidden="true">&#8594;</span></span>
-                                <span class="progress-track" role="progressbar" aria-label="Image analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-                                    <span class="progress-bar"></span>
-                                </span>
-                                <span class="progress-text">0%</span>
-                            </button>
-                        </div>
-                    </form>
-
-                    <aside class="signal-board" aria-label="Analysis layers">
-                        <div class="signal-board-top"><span>READOUT / 06</span><span class="signal-live"><i></i> READY</span></div>
-                        <h3>Clues, not verdicts.</h3>
-                        <ol class="signal-list">
-                            <li><span>01</span><span>Metadata history</span><b>&#8599;</b></li>
-                            <li><span>02</span><span>Error-level map</span><b>&#8599;</b></li>
-                            <li><span>03</span><span>Copy-move traces</span><b>&#8599;</b></li>
-                            <li><span>04</span><span>Compression + noise</span><b>&#8599;</b></li>
-                            <li><span>05</span><span>ML model signal</span><b>&#8599;</b></li>
-                        </ol>
-                        <p class="signal-disclaimer">Automated signals support review. They are not proof of manipulation.</p>
-                    </aside>
+                <div class="tools-grid">
+                    <a class="tool-card tool-card-forensics" href="{{ url_for('inspect') }}">
+                        <span class="tool-card-index">01 / ANALYZE</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#9678;</span>
+                        <h3>Image forensics</h3>
+                        <p>Review metadata, compression, noise, and localized image clues.</p>
+                        <span class="tool-card-link">Open forensic review <b aria-hidden="true">&#8594;</b></span>
+                    </a>
+                    <a class="tool-card tool-card-convert" href="{{ url_for('convert') }}">
+                        <span class="tool-card-index">02 / CONVERT</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#8644;</span>
+                        <h3>Format converter</h3>
+                        <p>Convert JPG, PNG, and WebP images to image formats or PDF.</p>
+                        <span class="tool-card-link">Open converter <b aria-hidden="true">&#8594;</b></span>
+                    </a>
+                    <a class="tool-card tool-card-roadmap" href="{{ url_for('roadmap') }}">
+                        <span class="tool-card-index">03 / IN DEVELOPMENT</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#8599;</span>
+                        <h3>More media tools</h3>
+                        <p>See planned video, motion, and audio analysis modules.</p>
+                        <span class="tool-card-link">View roadmap <b aria-hidden="true">&#8594;</b></span>
+                    </a>
                 </div>
-            </section>
-
-            <section class="dataset-section" id="dataset" aria-labelledby="dataset-title">
-                <div class="section-heading dataset-heading">
-                    <div>
-                        <p class="section-index">02 / TRAINING COLLECTION</p>
-                        <h2 id="dataset-title">Two sides of the same story.</h2>
-                    </div>
-                    <p class="section-aside">Files stay in this workspace.<br>Nothing trains automatically.</p>
-                </div>
-                <p class="dataset-intro">Keep labels separate and honest. Add original and manipulated examples to their own image banks before training.</p>
-
-                <div class="dataset-banks">
-                    <article class="dataset-card dataset-original" data-class-card="original">
-                        <div class="dataset-card-head">
-                            <span class="dataset-number">A / 01</span>
-                            <span class="dataset-type">AUTHENTIC SOURCE</span>
-                        </div>
-                        <div class="dataset-title-row">
-                            <h3>Original</h3>
-                            <p><strong data-image-count>{{ dataset_counts.original }}</strong><span>images</span></p>
-                        </div>
-                        <progress class="dataset-progress" max="{{ dataset_minimum }}" value="{{ dataset_counts.original }}" aria-label="Original image count toward 50 image minimum"></progress>
-                        <p class="dataset-target"><span>TRAINING MINIMUM</span><span>{{ dataset_counts.original }} / {{ dataset_minimum }}</span></p>
-                        <form class="dataset-form" action="{{ url_for('upload_dataset_images', label='original') }}" method="post" enctype="multipart/form-data">
-                            <label class="dataset-drop" for="original-images">
-                                <span class="dataset-add" aria-hidden="true">+</span>
-                                <span><strong>Add original images</strong><small class="dataset-selection">Choose or drop a batch</small></span>
-                                <input class="visually-hidden" type="file" id="original-images" name="images" accept=".jpg,.jpeg,.png,.tif,.tiff,.bmp" multiple>
-                            </label>
-                            <button class="dataset-submit" type="submit">Add to original bank <span aria-hidden="true">&#8594;</span></button>
-                        </form>
-                    </article>
-
-                    <article class="dataset-card dataset-manipulated" data-class-card="manipulated">
-                        <div class="dataset-card-head">
-                            <span class="dataset-number">B / 02</span>
-                            <span class="dataset-type">ALTERED / COMPOSITE</span>
-                        </div>
-                        <div class="dataset-title-row">
-                            <h3>Manipulated</h3>
-                            <p><strong data-image-count>{{ dataset_counts.manipulated }}</strong><span>images</span></p>
-                        </div>
-                        <progress class="dataset-progress" max="{{ dataset_minimum }}" value="{{ dataset_counts.manipulated }}" aria-label="Manipulated image count toward 50 image minimum"></progress>
-                        <p class="dataset-target"><span>TRAINING MINIMUM</span><span>{{ dataset_counts.manipulated }} / {{ dataset_minimum }}</span></p>
-                        <form class="dataset-form" action="{{ url_for('upload_dataset_images', label='manipulated') }}" method="post" enctype="multipart/form-data">
-                            <label class="dataset-drop" for="manipulated-images">
-                                <span class="dataset-add" aria-hidden="true">+</span>
-                                <span><strong>Add manipulated images</strong><small class="dataset-selection">Choose or drop a batch</small></span>
-                                <input class="visually-hidden" type="file" id="manipulated-images" name="images" accept=".jpg,.jpeg,.png,.tif,.tiff,.bmp" multiple>
-                            </label>
-                            <button class="dataset-submit" type="submit">Add to manipulated bank <span aria-hidden="true">&#8594;</span></button>
-                        </form>
-                    </article>
-                </div>
-
-                <div class="dataset-notice" role="note">
-                    <span class="notice-mark" aria-hidden="true">!</span>
-                    <p><strong>Keep the evidence clean.</strong> Use real, correctly labeled images. Synthetic demo files are not suitable for a production model; training remains a separate manual step.</p>
-                </div>
-                <p class="dataset-feedback" data-dataset-feedback aria-live="polite"></p>
             </section>
         </main>
 
-        <footer class="editorial-footer"><span>MORPHTRACE / FIELD DESK</span><span>IMAGES ARE EVIDENCE. CONTEXT IS EVERYTHING.</span></footer>
+        <footer class="editorial-footer"><a href="{{ url_for('training') }}">Training tools</a><span>MORPHTRACE</span><span>IMAGE INTEGRITY / FILE UTILITIES</span></footer>
     </div>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

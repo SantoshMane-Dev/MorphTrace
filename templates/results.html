@@ -7,19 +7,21 @@
     <title>MorphTrace | Investigation Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="results-page">
+<body class="results-page editorial-results">
 <div class="page-shell results-shell">
-    <header class="topbar results-topbar">
-        <div class="brand-wrap">
-            <div class="brand-mark" aria-hidden="true">M</div>
-            <div>
-                <span class="brand-name">MorphTrace</span>
-                <span class="brand-tag">Investigation report</span>
-            </div>
-        </div>
+    <header class="topbar results-topbar editorial-topbar">
+        <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+            <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS / REPORT</small></span>
+        </a>
+        <nav class="editorial-nav" aria-label="Report navigation">
+            <a href="{{ url_for('inspect') }}">Forensics</a>
+            <a href="{{ url_for('convert') }}">Convert</a>
+            <a href="{{ url_for('roadmap') }}">Roadmap</a>
+        </nav>
     </header>
 
-    <main class="results-layout">
+    <main class="results-layout editorial-results-layout">
         <section class="result-hero" aria-labelledby="result-heading">
             <div class="image-preview-wrap">
                 <img src="{{ image_url }}" alt="Uploaded image being reviewed" class="image-preview">

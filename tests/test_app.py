@@ -23,10 +23,10 @@ def client(tmp_path):
     return app.test_client()
 
 
-def make_image():
+def make_image(image_format="JPEG"):
     image = Image.new("RGB", (128, 128), color="red")
     buffer = io.BytesIO()
-    image.save(buffer, format="JPEG")
+    image.save(buffer, format=image_format)
     buffer.seek(0)
     return buffer
 
@@ -34,6 +34,81 @@ def make_image():
 def test_homepage_loads(client):
     response = client.get("/")
     assert response.status_code == 200
+    assert b"Format converter" in response.data
+    assert b"Image forensics" in response.data
+    assert b"LOCAL WORKSPACE" not in response.data
+
+
+def test_inspect_page_loads(client):
+    response = client.get("/inspect")
+    assert response.status_code == 200
+    assert b"Drop a frame for review" in response.data
+
+
+def test_roadmap_page_loads(client):
+    response = client.get("/roadmap")
+    assert response.status_code == 200
+    assert b"Video integrity monitor" in response.data
+
+
+def test_converter_page_loads(client):
+    response = client.get("/convert")
+    assert response.status_code == 200
+    assert b"Convert and download" in response.data
+    assert b"PDF" in response.data
+
+
+def test_training_workspace_loads(client):
+    response = client.get("/training")
+    assert response.status_code == 200
+    assert b"Add original images" in response.data
+    assert b"Add manipulated images" in response.data
+
+
+def test_converter_converts_jpeg_to_png(client):
+    response = client.post(
+        "/convert",
+        data={"image": (make_image(), "sample.jpg"), "output_format": "png"},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    assert response.mimetype == "image/png"
+    assert Image.open(io.BytesIO(response.data)).format == "PNG"
+
+
+def test_converter_converts_webp_to_jpeg(client):
+    response = client.post(
+        "/convert",
+        data={"image": (make_image("WEBP"), "sample.webp"), "output_format": "jpg"},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    assert response.mimetype == "image/jpeg"
+    assert Image.open(io.BytesIO(response.data)).format == "JPEG"
+
+
+def test_converter_exports_image_as_pdf(client):
+    response = client.post(
+        "/convert",
+        data={"image": (make_image(), "sample.jpg"), "output_format": "pdf"},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    assert response.mimetype == "application/pdf"
+    assert response.data.startswith(b"%PDF")
+
+
+def test_converter_rejects_extension_content_mismatch(client):
+    response = client.post(
+        "/convert",
+        data={"image": (make_image("PNG"), "sample.jpg"), "output_format": "webp"},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
 
 
 def test_upload_accepts_valid_jpeg(client):

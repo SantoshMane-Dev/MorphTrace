@@ -1,6 +1,7 @@
 
 import logging
 import re
+from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
@@ -11,10 +12,11 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     send_from_directory,
     url_for,
 )
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.utils import secure_filename
 
@@ -50,6 +52,18 @@ DATASET_IMAGE_FORMATS = {
     ".tiff": "TIFF",
     ".bmp": "BMP",
 }
+CONVERT_INPUT_FORMATS = {
+    ".jpg": "JPEG",
+    ".jpeg": "JPEG",
+    ".png": "PNG",
+    ".webp": "WEBP",
+}
+CONVERT_OUTPUT_FORMATS = {
+    "png": ("PNG", "image/png"),
+    "jpg": ("JPEG", "image/jpeg"),
+    "webp": ("WEBP", "image/webp"),
+    "pdf": ("PDF", "application/pdf"),
+}
 
 MAX_UPLOAD_BYTES = 16 * 1024 * 1024
 UPLOAD_NAME_PATTERN = re.compile(r"^[0-9a-f]{32}\.(jpg|jpeg|png)$")
@@ -81,6 +95,18 @@ def create_app(test_config=None):
 
     @app.get("/")
     def index():
+        return render_template("index.html")
+
+    @app.get("/inspect")
+    def inspect():
+        return render_template("inspect.html")
+
+    @app.get("/roadmap")
+    def roadmap():
+        return render_template("roadmap.html")
+
+    @app.get("/training")
+    def training():
         dataset_counts = {
             label: sum(
                 path.is_file() and path.suffix.lower() in DATASET_IMAGE_FORMATS
@@ -91,9 +117,75 @@ def create_app(test_config=None):
             for label, directory in DATASET_CLASS_DIRECTORIES.items()
         }
         return render_template(
-            "index.html",
+            "training.html",
             dataset_counts=dataset_counts,
             dataset_minimum=50,
+        )
+
+    @app.route("/convert", methods=["GET", "POST"])
+    def convert():
+        if request.method == "GET":
+            return render_template("convert.html")
+
+        uploaded_file = request.files.get("image")
+        if not uploaded_file or not uploaded_file.filename:
+            return render_template("convert.html", error="Choose an image to convert."), 400
+
+        safe_name = secure_filename(uploaded_file.filename)
+        expected_format = CONVERT_INPUT_FORMATS.get(Path(safe_name).suffix.lower())
+        output_choice = request.form.get("output_format", "png").lower()
+        output_details = CONVERT_OUTPUT_FORMATS.get(output_choice)
+
+        if not expected_format:
+            return render_template(
+                "convert.html",
+                error="Choose a JPG, PNG, or WebP image.",
+            ), 400
+        if not output_details:
+            return render_template(
+                "convert.html",
+                error="Choose PNG, JPG, WebP, or PDF as the output format.",
+            ), 400
+
+        target_format, mimetype = output_details
+        output = BytesIO()
+        try:
+            with Image.open(uploaded_file.stream) as probe:
+                actual_format = probe.format
+                probe.verify()
+
+            if actual_format != expected_format:
+                return render_template(
+                    "convert.html",
+                    error="The image content does not match its file extension.",
+                ), 400
+
+            uploaded_file.stream.seek(0)
+            with Image.open(uploaded_file.stream) as source:
+                converted = ImageOps.exif_transpose(source)
+                if target_format in {"JPEG", "PDF"}:
+                    rgba_image = converted.convert("RGBA")
+                    flattened = Image.new("RGB", rgba_image.size, "white")
+                    flattened.paste(rgba_image, mask=rgba_image.getchannel("A"))
+                    converted = flattened
+                else:
+                    converted = converted.copy()
+                converted.save(output, format=target_format)
+        except (UnidentifiedImageError, OSError, ValueError) as error:
+            app.logger.info("Rejected invalid conversion upload: %s", error)
+            return render_template(
+                "convert.html",
+                error="That file could not be read as an image.",
+            ), 400
+
+        output.seek(0)
+        extension = "jpg" if target_format == "JPEG" else output_choice
+        download_name = f"{Path(safe_name).stem}.{extension}"
+        return send_file(
+            output,
+            mimetype=mimetype,
+            as_attachment=True,
+            download_name=download_name,
         )
 
     @app.post("/dataset/upload/<label>")
