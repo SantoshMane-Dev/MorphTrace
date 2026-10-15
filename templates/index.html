@@ -3,60 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="MorphTrace digital image forensics dashboard">
-    <title>MorphTrace | Image Forensics</title>
+    <meta name="description" content="MorphTrace image forensics and image conversion tools">
+    <title>MorphTrace | Image Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="landing-page">
-    <div class="page-shell">
-        <header class="topbar">
-            <div class="brand-wrap">
-                <div class="brand-mark">M</div>
-                <div>
-                    <span class="brand-name">MorphTrace</span>
-                    <span class="brand-tag">Forensic Intelligence</span>
-                </div>
-            </div>
+<body class="landing-page editorial-home">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-shell landing-shell editorial-shell">
+        <header class="topbar editorial-topbar">
+            <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS &amp; TOOLS</small></span>
+            </a>
+            <nav class="editorial-nav" aria-label="Main navigation">
+                <a href="{{ url_for('inspect') }}">Forensics</a>
+                <a href="{{ url_for('convert') }}">Convert</a>
+                <a href="{{ url_for('roadmap') }}">Roadmap</a>
+            </nav>
         </header>
 
-        <main class="landing-hero">
-            <section class="hero-copy">
-                <p class="eyebrow">Digital image forensics</p>
-                <h1>Reveal the signals behind image tampering.</h1>
-                <p class="subtext">
-                    Upload an image and review forensic evidence across metadata,
-                    compression, noise, ELA, and copy-move indicators in one
-                    modern investigation workflow.
-                </p>
-
-                <div class="feature-pills">
-                    <span>Metadata review</span>
-                    <span>ELA analysis</span>
-                    <span>Copy-move detection</span>
-                    <span>ML support</span>
+        <main>
+            <section class="editorial-hero" aria-labelledby="hero-title">
+                <div class="hero-copy">
+                    <p class="case-eyebrow"><span>IMAGE AUTHENTICITY</span></p>
+                    <h1 id="hero-title">Every image<br>leaves a <em>trace.</em></h1>
+                    <p class="hero-deck">Review image integrity, inspect evidence, and convert common file formats with practical tools in one place.</p>
+                    <div class="hero-actions">
+                        <a class="action-link action-primary" href="{{ url_for('inspect') }}">Inspect an image <span aria-hidden="true">&#8594;</span></a>
+                        <a class="action-link action-secondary" href="{{ url_for('convert') }}">Convert a file <span aria-hidden="true">&#8595;</span></a>
+                    </div>
                 </div>
+
+                <figure class="hero-illustration forensic-portrait">
+                    <div class="portrait-screen">
+                        <img src="{{ url_for('static', filename='img/forensic-analyst.webp') }}" alt="Woman working with technical imaging equipment">
+                        <span class="portrait-binary portrait-binary-left" aria-hidden="true">01001001<br>10110100<br>00101101<br>11001010<br>01100101<br>10010110</span>
+                        <span class="portrait-binary portrait-binary-right" aria-hidden="true">10110010<br>01001101<br>11100010<br>00110101<br>10011001<br>01101010</span>
+                        <svg class="portrait-dna" viewBox="0 0 80 260" aria-hidden="true" focusable="false">
+                            <path d="M18 8C70 38 70 62 18 92S-34 146 18 176s52 44 0 76M62 8C10 38 10 62 62 92s52 54 0 84-52 44 0 76" />
+                            <path class="dna-rungs" d="M25 19h30M38 43h20M34 68h24M20 91h36M22 117h34M34 143h24M40 169h20M26 194h30M20 220h34M27 244h30" />
+                        </svg>
+                        <span class="portrait-scan" aria-hidden="true"></span>
+                    </div>
+                    <figcaption><span>FORENSIC IMAGE REVIEW</span><span>VISUAL SIGNALS</span></figcaption>
+                </figure>
             </section>
 
-            <section class="upload-panel">
-                <div class="panel-header">
-                    <span class="status-dot"></span>
-                    <span>New investigation</span>
+            <section class="tools-directory" aria-labelledby="tools-title">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-index">IMAGE WORKFLOW</p>
+                        <h2 id="tools-title">Choose a tool.</h2>
+                    </div>
+                    <p class="section-aside">Image review / file conversion<br>More media tools on the roadmap</p>
                 </div>
-
-                <form action="/upload" method="post" enctype="multipart/form-data" class="upload-form">
-                    <label for="image" class="upload-label">Choose an image</label>
-                    <input
-                        type="file"
-                        id="image"
-                        name="image"
-                        accept=".jpg,.jpeg,.png"
-                        required
-                    >
-                    <small>Supported formats: JPG, JPEG, PNG</small>
-                    <button type="submit">Analyze image</button>
-                </form>
+                <div class="tools-grid">
+                    <a class="tool-card tool-card-forensics" href="{{ url_for('inspect') }}">
+                        <span class="tool-card-index">01 / ANALYZE</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#9678;</span>
+                        <h3>Image forensics</h3>
+                        <p>Review metadata, compression, noise, and localized image clues.</p>
+                        <span class="tool-card-link">Open forensic review <b aria-hidden="true">&#8594;</b></span>
+                    </a>
+                    <a class="tool-card tool-card-convert" href="{{ url_for('convert') }}">
+                        <span class="tool-card-index">02 / CONVERT</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#8644;</span>
+                        <h3>Format converter</h3>
+                        <p>Convert JPG, PNG, and WebP images to image formats or PDF.</p>
+                        <span class="tool-card-link">Open converter <b aria-hidden="true">&#8594;</b></span>
+                    </a>
+                    <a class="tool-card tool-card-roadmap" href="{{ url_for('roadmap') }}">
+                        <span class="tool-card-index">03 / IN DEVELOPMENT</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#8599;</span>
+                        <h3>More media tools</h3>
+                        <p>See planned video, motion, and audio analysis modules.</p>
+                        <span class="tool-card-link">View roadmap <b aria-hidden="true">&#8594;</b></span>
+                    </a>
+                </div>
             </section>
         </main>
+
     </div>
 </body>
 </html>

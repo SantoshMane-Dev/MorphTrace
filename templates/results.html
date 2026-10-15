@@ -7,140 +7,228 @@
     <title>MorphTrace | Investigation Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-<body class="results-page">
+<body class="results-page editorial-results">
 <div class="page-shell results-shell">
-    <header class="topbar results-topbar">
-        <div class="brand-wrap">
-            <div class="brand-mark">M</div>
-            <div>
-                <span class="brand-name">MorphTrace</span>
-                <span class="brand-tag">Investigation report</span>
-            </div>
-        </div>
-        <a href="{{ url_for('index') }}" class="ghost-link">Analyze another image</a>
+    <header class="topbar results-topbar editorial-topbar">
+        <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+            <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS / REPORT</small></span>
+        </a>
+        <nav class="editorial-nav" aria-label="Report navigation">
+            <a href="{{ url_for('inspect') }}">Forensics</a>
+            <a href="{{ url_for('convert') }}">Convert</a>
+            <a href="{{ url_for('roadmap') }}">Roadmap</a>
+        </nav>
     </header>
 
-    <main class="results-layout">
-        <section class="verdict-panel">
+    <main class="results-layout editorial-results-layout">
+        <section class="result-hero" aria-labelledby="result-heading">
             <div class="image-preview-wrap">
-                <img src="{{ image_url }}" alt="Uploaded investigation image" class="image-preview">
-            </div>
-
-            <div class="verdict-content">
-                <p class="eyebrow">Verdict</p>
-                <h1>{{ assessment.assessment }}</h1>
-
-                <div class="score-meter">
-                    <div class="score-ring" style="--score: {{ manipulation_score }};">
-                        <span>{{ manipulation_score }}%</span>
+                <img src="{{ image_url }}" alt="Uploaded image being reviewed" class="image-preview">
+                <div class="result-overlay verdict-{{ verdict_state }}">
+                    <div>
+                        <h1 id="result-heading">{{ verdict_label }}</h1>
                     </div>
-                    <div class="score-copy">
-                        <p class="label">Manipulation likelihood</p>
+                    <div class="result-score-pill">
                         <strong>{{ manipulation_score }}%</strong>
-                        <small>Authenticity confidence: {{ authenticity_score }}%</small>
+                        <span>manipulation score</span>
                     </div>
                 </div>
+            </div>
 
-                <div class="mini-metrics">
-                    <div>
-                        <span class="label">Review signals</span>
+            <p class="verdict-context">{{ verdict_context }}</p>
+            <p class="result-disclaimer">{{ assessment.score_interpretation }}</p>
+
+            <div class="result-highlights" aria-label="Primary analysis results">
+                <div class="result-highlight result-highlight--{{ verdict_state }}">
+                    <span class="result-highlight-label">Result</span>
+                    <strong>{{ verdict_label }}</strong>
+                    <span>{{ manipulation_score }}% evidence score</span>
+                </div>
+                {% if ml and ml.available %}
+                {% set ml_is_manipulated = ml.predicted_class|lower in ["manipulated", "tampered", "forged", "fake"] %}
+                <div class="result-highlight {% if ml_is_manipulated %}result-highlight--manipulated{% else %}result-highlight--authentic{% endif %}">
+                    <span class="result-highlight-label">ML insight</span>
+                    <strong>{{ ml.predicted_class|title }}</strong>
+                    <span>{{ ml.model_score_percent }}% model score</span>
+                </div>
+                {% else %}
+                <div class="result-highlight result-highlight--unavailable">
+                    <span class="result-highlight-label">ML insight</span>
+                    <strong>Unavailable</strong>
+                    <span>{{ ml.message if ml and ml.message else "No validated model result available" }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+        </section>
+
+        <details class="findings-disclosure">
+            <summary>
+                <span class="disclosure-title">
+                    <span class="disclosure-open">Show forensic findings</span>
+                    <span class="disclosure-closed">Hide forensic findings</span>
+                    <small>{{ assessment.evidence|length }} findings · {{ assessment.signals|length }} signal checks</small>
+                </span>
+                <span class="disclosure-icon" aria-hidden="true">⌄</span>
+            </summary>
+
+            <div class="findings-content">
+                <div class="result-stats" aria-label="Analysis summary">
+                    <div class="result-stat">
+                        <span class="stat-mark stat-mark-purple" aria-hidden="true"></span>
+                        <span>Review signals</span>
                         <strong>{{ assessment.review_count }}</strong>
                     </div>
-                    <div>
-                        <span class="label">Localized clues</span>
+                    <div class="result-stat">
+                        <span class="stat-mark stat-mark-cyan" aria-hidden="true"></span>
+                        <span>Localized clues</span>
                         <strong>{{ assessment.localized_evidence_count }}</strong>
                     </div>
-                    <div>
-                        <span class="label">Format</span>
+                    <div class="result-stat">
+                        <span class="stat-mark stat-mark-green" aria-hidden="true"></span>
+                        <span>Image format</span>
                         <strong>{{ metadata.format }}</strong>
                     </div>
                 </div>
-            </div>
-        </section>
+                <p class="interpretation-note">These are automated review signals, not proof of image manipulation. Compression, editing history, and image content can affect results.</p>
 
-        <section class="signals-panel">
-            <div class="panel-header-row">
-                <h2>Key signals</h2>
-                <span class="badge">Priority overview</span>
-            </div>
+                <div class="analysis-grid">
+                    <section class="analysis-panel">
+                        <div class="panel-header-row">
+                            <h2>Key signals</h2>
+                            <span class="badge">Heuristic checks</span>
+                        </div>
+                        {% for name, score in assessment.signals.items() %}
+                        <div class="signal-row">
+                            <div class="signal-heading">
+                                <span class="signal-name">{{ name|replace("_", " ")|title }}</span>
+                                <span class="signal-score">{{ "%.1f"|format(score * 100) }}%</span>
+                            </div>
+                            <small class="signal-detail">
+                                {% if name == "ela" %}
+                                {{ ela.note }} Mean pixel difference: {{ ela.mean_difference }}; maximum: {{ ela.max_difference }}
+                                {% elif name == "copy_move" %}
+                                Candidate feature matches: {{ copy_move.matches }}
+                                {% elif name == "compression" %}
+                                Mean high-frequency energy: {{ compression.mean_high_frequency }}
+                                {% elif name == "noise" %}
+                                Local noise variation: {{ noise.noise_variation }}
+                                {% endif %}
+                            </small>
+                            <div class="signal-track">
+                                <div class="signal-fill" style="width: {{ score * 100 }}%;"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </section>
 
-            {% for name, score in assessment.signals.items() %}
-            <div class="signal-row">
-                <div class="signal-heading">
-                    <span class="signal-name">{{ name|replace("_", " ")|title }}</span>
-                    <span class="signal-score">{{ "%.2f"|format(score * 100) }}%</span>
+                    {% if ml and ml.available %}
+                    <section class="analysis-panel">
+                        <div class="panel-header-row">
+                            <h2>ML insight</h2>
+                            <span class="badge">Additional signal</span>
+                        </div>
+                        <div class="ml-summary">
+                            <div>
+                                <span class="label">Predicted class</span>
+                                <strong>{{ ml.predicted_class }}</strong>
+                            </div>
+                            <div>
+                                <span class="label">Model score</span>
+                                <strong>{{ ml.model_score_percent }}%</strong>
+                            </div>
+                        </div>
+                        {% for label, score in ml.model_scores.items() %}
+                        <div class="signal-row compact-row">
+                            <div class="signal-heading">
+                                <span class="signal-name">{{ label|title }}</span>
+                                <span class="signal-score">{{ score }}%</span>
+                            </div>
+                            <div class="signal-track">
+                                <div class="signal-fill alternate-fill" style="width: {{ score }}%;"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </section>
+                    {% endif %}
                 </div>
-                <div class="signal-track">
-                    <div class="signal-fill" style="width: {{ score * 100 }}%;"></div>
-                </div>
-            </div>
-            {% endfor %}
-        </section>
 
-        {% if ml and ml.available %}
-        <section class="signals-panel">
-            <div class="panel-header-row">
-                <h2>ML insight</h2>
-                <span class="badge">AI evidence</span>
-            </div>
-
-            <div class="ml-summary">
-                <div>
-                    <span class="label">Predicted class</span>
-                    <strong>{{ ml.predicted_class }}</strong>
-                </div>
-                <div>
-                    <span class="label">Confidence</span>
-                    <strong>{{ ml.model_score_percent }}%</strong>
-                </div>
-            </div>
-
-            {% for label, score in ml.model_scores.items() %}
-            <div class="signal-row compact-row">
-                <div class="signal-heading">
-                    <span class="signal-name">{{ label|title }}</span>
-                    <span class="signal-score">{{ score }}%</span>
-                </div>
-                <div class="signal-track">
-                    <div class="signal-fill alternate-fill" style="width: {{ score }}%;"></div>
-                </div>
-            </div>
-            {% endfor %}
-        </section>
-        {% endif %}
-
-        <section class="evidence-panel">
-            <div class="panel-header-row">
-                <h2>Important findings</h2>
-                <span class="badge">Evidence</span>
-            </div>
-
-            {% if assessment.evidence %}
-                {% for item in assessment.evidence %}
-                <article class="evidence-item">
-                    <div class="evidence-head">
-                        <h3>{{ item.technique|replace("_", " ")|title }}</h3>
-                        <span class="severity severity-{{ item.severity|lower }}">{{ item.severity|title }}</span>
+                <section class="analysis-panel findings-panel">
+                    <div class="panel-header-row">
+                        <h2>What was flagged</h2>
+                        <span class="badge">{{ assessment.evidence|length }} findings</span>
                     </div>
-                    <p>{{ item.finding }}</p>
-                </article>
-                {% endfor %}
-            {% else %}
-                <p class="empty-state">No strong forensic indicators were triggered in this review.</p>
-            {% endif %}
-        </section>
+                    {% if assessment.evidence %}
+                        {% for item in assessment.evidence %}
+                        <article class="evidence-item">
+                            <div class="evidence-head">
+                                <h3>{{ item.technique|replace("_", " ")|title }}</h3>
+                                <span class="severity severity-{{ item.severity|lower }}">{{ item.severity|title }}</span>
+                            </div>
+                            <p>{{ item.finding }}</p>
+                        </article>
+                        {% endfor %}
+                    {% else %}
+                        <p class="empty-state">No strong forensic indicators were triggered in this review.</p>
+                    {% endif %}
+                </section>
 
-        <section class="meta-panel">
-            <div class="panel-header-row">
-                <h2>Image details</h2>
+                <section class="analysis-panel artifacts-panel">
+                    <div class="panel-header-row">
+                        <h2>Visual evidence</h2>
+                        <span class="badge">Generated for this image</span>
+                    </div>
+                    <div class="artifact-grid">
+                        <figure class="artifact-card">
+                            <img src="{{ ela_url }}" alt="Error Level Analysis difference map">
+                            <figcaption>
+                                <strong>ELA difference map</strong>
+                                <span>{{ ela.note }} Bright areas need context.</span>
+                            </figcaption>
+                        </figure>
+                        <figure class="artifact-card">
+                            <img src="{{ copy_move_url }}" alt="Copy-move analysis with candidate feature matches marked">
+                            <figcaption>
+                                <strong>Copy-move candidates</strong>
+                                <span>Red marks show potential duplicated feature matches, not confirmed edits.</span>
+                            </figcaption>
+                        </figure>
+                    </div>
+                </section>
+
+                <section class="analysis-panel metadata-panel">
+                    <div class="panel-header-row">
+                        <h2>Image details</h2>
+                    </div>
+                    <div class="meta-grid">
+                        <div><span class="label">Dimensions</span><strong>{{ metadata.width }} × {{ metadata.height }}</strong></div>
+                        <div><span class="label">Color mode</span><strong>{{ metadata.mode }}</strong></div>
+                        <div><span class="label">EXIF entries</span><strong>{{ metadata.exif|length }}</strong></div>
+                        <div><span class="label">Source</span><strong>{{ metadata.filename }}</strong></div>
+                        {% for name, value in metadata.container_metadata.items() %}
+                        <div><span class="label">{{ name }}</span><strong>{{ value }}</strong></div>
+                        {% endfor %}
+                    </div>
+                    {% if metadata.exif %}
+                    <div class="metadata-tags">
+                        <h3>EXIF tags</h3>
+                        <dl>
+                            {% for name, value in metadata.exif.items() %}
+                            <div><dt>{{ name }}</dt><dd>{{ value }}</dd></div>
+                            {% endfor %}
+                        </dl>
+                    </div>
+                    {% endif %}
+                </section>
             </div>
-            <div class="meta-grid">
-                <div><span class="label">Dimensions</span><strong>{{ metadata.width }} × {{ metadata.height }}</strong></div>
-                <div><span class="label">Color mode</span><strong>{{ metadata.mode }}</strong></div>
-                <div><span class="label">EXIF entries</span><strong>{{ metadata.exif|length }}</strong></div>
-                <div><span class="label">Source</span><strong>{{ metadata.filename }}</strong></div>
-            </div>
-        </section>
+        </details>
+
+        <a href="{{ url_for('index') }}" class="result-retry">
+            <span class="retry-image-icon" aria-hidden="true"></span>
+            <span>Try another image</span>
+            <span class="retry-arrow" aria-hidden="true">→</span>
+        </a>
     </main>
 </div>
 </body>

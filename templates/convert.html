@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Convert images between JPG, PNG, WebP, and PDF formats">
+    <title>MorphTrace | Image Converter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="editorial-home tools-page converter-page">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-shell editorial-shell tools-shell">
+        <header class="topbar editorial-topbar">
+            <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="editorial-wordmark">MorphTrace<small>IMAGE TOOLS</small></span>
+            </a>
+            <nav class="editorial-nav" aria-label="Main navigation">
+                <a href="{{ url_for('inspect') }}">Forensics</a>
+                <a href="{{ url_for('convert') }}" aria-current="page">Convert</a>
+                <a href="{{ url_for('roadmap') }}">Roadmap</a>
+            </nav>
+        </header>
+
+        <main class="tool-main">
+            <section class="tool-intro" aria-labelledby="converter-title">
+                <p class="section-index">01 / FORMAT CONVERTER</p>
+                <h1 id="converter-title">One image. <em>Your format.</em></h1>
+                <p>Convert JPG, PNG, and WebP files to another image format or a single-page PDF. Your file is processed for download and not added to the training collection.</p>
+            </section>
+
+            <form class="converter-form" action="{{ url_for('convert') }}" method="post" enctype="multipart/form-data">
+                <label class="converter-file" for="convert-image">
+                    <span class="converter-file-icon" aria-hidden="true">+</span>
+                    <span><strong>Choose an image</strong><small>JPG, PNG, or WebP / up to 16 MB</small></span>
+                    <input type="file" id="convert-image" name="image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+                </label>
+                <div class="converter-options">
+                    <label for="output-format">Convert to</label>
+                    <select id="output-format" name="output_format">
+                        <option value="png">PNG</option>
+                        <option value="jpg">JPG</option>
+                        <option value="webp">WebP</option>
+                        <option value="pdf">PDF</option>
+                    </select>
+                    <button class="converter-submit" type="submit">Convert and download <span aria-hidden="true">&#8594;</span></button>
+                </div>
+                {% if error %}<p class="converter-error" role="alert">{{ error }}</p>{% endif %}
+            </form>
+
+            <div class="converter-formats" aria-label="Supported conversions">
+                <span>JPG</span><i aria-hidden="true">&#8594;</i><span>PNG</span>
+                <span>WEBP</span><i aria-hidden="true">&#8594;</i><span>JPG</span>
+                <span>IMAGE</span><i aria-hidden="true">&#8594;</i><span>PDF</span>
+            </div>
+        </main>
+
+        <footer class="editorial-footer"><a href="{{ url_for('index') }}">MorphTrace home</a><span>OUTPUTS / JPG / PNG / WEBP / PDF</span></footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Manage labeled image collections for MorphTrace model training">
+    <title>MorphTrace | Training Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="editorial-home training-page">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-shell editorial-shell training-shell">
+        <header class="topbar editorial-topbar">
+            <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="editorial-wordmark">MorphTrace<small>TRAINING TOOLS</small></span>
+            </a>
+            <nav class="editorial-nav" aria-label="Training navigation">
+                <a href="{{ url_for('inspect') }}">Forensics</a>
+                <a href="{{ url_for('convert') }}">Convert</a>
+                <a href="{{ url_for('roadmap') }}">Roadmap</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="training-intro" aria-labelledby="training-title">
+                <p class="case-eyebrow"><span>MODEL WORKSPACE</span><span>MANUAL CURATION</span></p>
+                <h1 id="training-title">Build a cleaner <em>dataset.</em></h1>
+                <p>Keep authentic and manipulated examples separated. Images stay in this workspace; nothing trains automatically.</p>
+            </section>
+
+            <section class="dataset-section training-dataset" id="dataset" aria-labelledby="dataset-title">
+                <div class="section-heading dataset-heading">
+                    <div>
+                        <p class="section-index">01 / LABELED COLLECTIONS</p>
+                        <h2 id="dataset-title">Two sides of the same story.</h2>
+                    </div>
+                    <p class="section-aside">Minimum {{ dataset_minimum }} images per class.<br>Training remains a separate step.</p>
+                </div>
+                <p class="dataset-intro">Use real, correctly labeled images and keep each class consistent.</p>
+
+                <div class="dataset-banks">
+                    <article class="dataset-card dataset-original" data-class-card="original">
+                        <div class="dataset-card-head">
+                            <span class="dataset-number">A / 01</span>
+                            <span class="dataset-type">AUTHENTIC SOURCE</span>
+                        </div>
+                        <div class="dataset-title-row">
+                            <h3>Original</h3>
+                            <p><strong data-image-count>{{ dataset_counts.original }}</strong><span>images</span></p>
+                        </div>
+                        <progress class="dataset-progress" max="{{ dataset_minimum }}" value="{{ dataset_counts.original }}" aria-label="Original image count toward 50 image minimum"></progress>
+                        <p class="dataset-target"><span>TRAINING MINIMUM</span><span>{{ dataset_counts.original }} / {{ dataset_minimum }}</span></p>
+                        <form class="dataset-form" action="{{ url_for('upload_dataset_images', label='original') }}" method="post" enctype="multipart/form-data">
+                            <label class="dataset-drop" for="original-images">
+                                <span class="dataset-add" aria-hidden="true">+</span>
+                                <span><strong>Add original images</strong><small class="dataset-selection">Choose or drop a batch</small></span>
+                                <input class="visually-hidden" type="file" id="original-images" name="images" accept=".jpg,.jpeg,.png,.tif,.tiff,.bmp" multiple>
+                            </label>
+                            <button class="dataset-submit" type="submit">Add to original bank <span aria-hidden="true">&#8594;</span></button>
+                        </form>
+                    </article>
+
+                    <article class="dataset-card dataset-manipulated" data-class-card="manipulated">
+                        <div class="dataset-card-head">
+                            <span class="dataset-number">B / 02</span>
+                            <span class="dataset-type">ALTERED / COMPOSITE</span>
+                        </div>
+                        <div class="dataset-title-row">
+                            <h3>Manipulated</h3>
+                            <p><strong data-image-count>{{ dataset_counts.manipulated }}</strong><span>images</span></p>
+                        </div>
+                        <progress class="dataset-progress" max="{{ dataset_minimum }}" value="{{ dataset_counts.manipulated }}" aria-label="Manipulated image count toward 50 image minimum"></progress>
+                        <p class="dataset-target"><span>TRAINING MINIMUM</span><span>{{ dataset_counts.manipulated }} / {{ dataset_minimum }}</span></p>
+                        <form class="dataset-form" action="{{ url_for('upload_dataset_images', label='manipulated') }}" method="post" enctype="multipart/form-data">
+                            <label class="dataset-drop" for="manipulated-images">
+                                <span class="dataset-add" aria-hidden="true">+</span>
+                                <span><strong>Add manipulated images</strong><small class="dataset-selection">Choose or drop a batch</small></span>
+                                <input class="visually-hidden" type="file" id="manipulated-images" name="images" accept=".jpg,.jpeg,.png,.tif,.tiff,.bmp" multiple>
+                            </label>
+                            <button class="dataset-submit" type="submit">Add to manipulated bank <span aria-hidden="true">&#8594;</span></button>
+                        </form>
+                    </article>
+                </div>
+
+                <div class="dataset-notice" role="note">
+                    <span class="notice-mark" aria-hidden="true">!</span>
+                    <p><strong>Keep the evidence clean.</strong> Synthetic demo files are not suitable for a production model.</p>
+                </div>
+                <p class="dataset-feedback" data-dataset-feedback aria-live="polite"></p>
+            </section>
+        </main>
+
+        <footer class="editorial-footer"><a href="{{ url_for('index') }}">Back to inspection</a><span>MORPHTRACE / TRAINING DESK</span></footer>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Explore planned MorphTrace media authenticity tools">
+    <title>MorphTrace | Roadmap</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="editorial-home roadmap-page">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-shell editorial-shell tools-shell">
+        <header class="topbar editorial-topbar">
+            <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                <span class="editorial-wordmark">MorphTrace<small>MEDIA TOOL ROADMAP</small></span>
+            </a>
+            <nav class="editorial-nav" aria-label="Main navigation">
+                <a href="{{ url_for('inspect') }}">Forensics</a>
+                <a href="{{ url_for('convert') }}">Convert</a>
+                <a href="{{ url_for('roadmap') }}" aria-current="page">Roadmap</a>
+            </nav>
+        </header>
+
+        <main class="tool-main roadmap-main">
+            <section class="tool-intro" aria-labelledby="roadmap-title">
+                <p class="section-index">IN DEVELOPMENT</p>
+                <h1 id="roadmap-title">More ways to inspect <em>media.</em></h1>
+                <p>These are planned directions, not available tools yet.</p>
+            </section>
+
+            <section class="future-section roadmap-modules" aria-labelledby="modules-title">
+                <h2 class="visually-hidden" id="modules-title">Planned modules</h2>
+                <div class="future-grid">
+                    <article class="future-card">
+                        <img class="future-art" src="{{ url_for('static', filename='img/module-video.webp') }}" alt="Video frame under a forensic scan" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">Planned</p><h3>Video integrity monitor</h3><p>Inspect suspicious frames, edits, and visual inconsistencies across video evidence.</p></div>
+                    </article>
+                    <article class="future-card">
+                        <img class="future-art" src="{{ url_for('static', filename='img/module-motion.webp') }}" alt="Motion traces visualizing animated media analysis" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">Planned</p><h3>Animated media analysis</h3><p>Trace altered motion, synthetic loops, and suspicious changes between frames.</p></div>
+                    </article>
+                    <article class="future-card">
+                        <img class="future-art" src="{{ url_for('static', filename='img/module-audio.webp') }}" alt="Audio waveform and signal display" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">Planned</p><h3>Voice authenticity scan</h3><p>Review voice recordings for signs of synthetic speech and audio manipulation.</p></div>
+                    </article>
+                </div>
+            </section>
+        </main>
+
+        <footer class="editorial-footer"><a href="{{ url_for('index') }}">MorphTrace home</a><span>MORPHTRACE / ROADMAP</span></footer>
+    </div>
+</body>
+</html>

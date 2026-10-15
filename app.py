@@ -1,19 +1,24 @@
 
 import logging
+import os
 import re
+from concurrent.futures import ThreadPoolExecutor
+from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
 from flask import (
     Flask,
     abort,
+    jsonify,
     redirect,
     render_template,
     request,
+    send_file,
     send_from_directory,
     url_for,
 )
-from PIL import Image, UnidentifiedImageError
+from PIL import Image, ImageOps, UnidentifiedImageError
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.utils import secure_filename
 
@@ -29,6 +34,7 @@ from forensic.noise.analyzer import analyze_noise
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 RESULTS_DIR = BASE_DIR / "results"
+DATASET_DIR = BASE_DIR / "data" / "casia"
 
 ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 ALLOWED_IMAGE_FORMATS = {
@@ -36,9 +42,38 @@ ALLOWED_IMAGE_FORMATS = {
     "jpeg": "JPEG",
     "png": "PNG",
 }
+DATASET_CLASS_DIRECTORIES = {
+    "original": "Au",
+    "manipulated": "Tp",
+}
+DATASET_IMAGE_FORMATS = {
+    ".jpg": "JPEG",
+    ".jpeg": "JPEG",
+    ".png": "PNG",
+    ".tif": "TIFF",
+    ".tiff": "TIFF",
+    ".bmp": "BMP",
+}
+CONVERT_INPUT_FORMATS = {
+    ".jpg": "JPEG",
+    ".jpeg": "JPEG",
+    ".png": "PNG",
+    ".webp": "WEBP",
+}
+CONVERT_OUTPUT_FORMATS = {
+    "png": ("PNG", "image/png"),
+    "jpg": ("JPEG", "image/jpeg"),
+    "webp": ("WEBP", "image/webp"),
+    "pdf": ("PDF", "application/pdf"),
+}
 
 MAX_UPLOAD_BYTES = 16 * 1024 * 1024
 UPLOAD_NAME_PATTERN = re.compile(r"^[0-9a-f]{32}\.(jpg|jpeg|png)$")
+STRONG_COPY_MOVE_MATCHES = 30
+ANALYSIS_EXECUTOR = ThreadPoolExecutor(
+    max_workers=4,
+    thread_name_prefix="morphtrace-analysis",
+)
 
 
 def create_app(test_config=None):
@@ -47,6 +82,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         MAX_CONTENT_LENGTH=MAX_UPLOAD_BYTES,
         MODEL_PATH=None,
+        TRAINING_TOOLS_ENABLED=os.environ.get("MORPHTRACE_ENABLE_TRAINING_TOOLS") == "1",
     )
 
     if test_config:
@@ -54,6 +90,7 @@ def create_app(test_config=None):
 
     upload_dir = Path(app.config.get("UPLOAD_DIR", UPLOAD_DIR))
     results_dir = Path(app.config.get("RESULTS_DIR", RESULTS_DIR))
+    dataset_dir = Path(app.config.get("DATASET_DIR", DATASET_DIR))
 
     upload_dir.mkdir(parents=True, exist_ok=True)
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -67,6 +104,156 @@ def create_app(test_config=None):
     @app.get("/")
     def index():
         return render_template("index.html")
+
+    @app.get("/inspect")
+    def inspect():
+        return render_template("inspect.html")
+
+    @app.get("/roadmap")
+    def roadmap():
+        return render_template("roadmap.html")
+
+    @app.get("/training")
+    def training():
+        if not app.config.get("TRAINING_TOOLS_ENABLED", False):
+            abort(404)
+
+        dataset_counts = {
+            label: sum(
+                path.is_file() and path.suffix.lower() in DATASET_IMAGE_FORMATS
+                for path in (dataset_dir / directory).rglob("*")
+            )
+            if (dataset_dir / directory).is_dir()
+            else 0
+            for label, directory in DATASET_CLASS_DIRECTORIES.items()
+        }
+        return render_template(
+            "training.html",
+            dataset_counts=dataset_counts,
+            dataset_minimum=50,
+        )
+
+    @app.route("/convert", methods=["GET", "POST"])
+    def convert():
+        if request.method == "GET":
+            return render_template("convert.html")
+
+        uploaded_file = request.files.get("image")
+        if not uploaded_file or not uploaded_file.filename:
+            return render_template("convert.html", error="Choose an image to convert."), 400
+
+        safe_name = secure_filename(uploaded_file.filename)
+        expected_format = CONVERT_INPUT_FORMATS.get(Path(safe_name).suffix.lower())
+        output_choice = request.form.get("output_format", "png").lower()
+        output_details = CONVERT_OUTPUT_FORMATS.get(output_choice)
+
+        if not expected_format:
+            return render_template(
+                "convert.html",
+                error="Choose a JPG, PNG, or WebP image.",
+            ), 400
+        if not output_details:
+            return render_template(
+                "convert.html",
+                error="Choose PNG, JPG, WebP, or PDF as the output format.",
+            ), 400
+
+        target_format, mimetype = output_details
+        output = BytesIO()
+        try:
+            with Image.open(uploaded_file.stream) as probe:
+                actual_format = probe.format
+                probe.verify()
+
+            if actual_format != expected_format:
+                return render_template(
+                    "convert.html",
+                    error="The image content does not match its file extension.",
+                ), 400
+
+            uploaded_file.stream.seek(0)
+            with Image.open(uploaded_file.stream) as source:
+                converted = ImageOps.exif_transpose(source)
+                if target_format in {"JPEG", "PDF"}:
+                    rgba_image = converted.convert("RGBA")
+                    flattened = Image.new("RGB", rgba_image.size, "white")
+                    flattened.paste(rgba_image, mask=rgba_image.getchannel("A"))
+                    converted = flattened
+                else:
+                    converted = converted.copy()
+                converted.save(output, format=target_format)
+        except (UnidentifiedImageError, OSError, ValueError) as error:
+            app.logger.info("Rejected invalid conversion upload: %s", error)
+            return render_template(
+                "convert.html",
+                error="That file could not be read as an image.",
+            ), 400
+
+        output.seek(0)
+        extension = "jpg" if target_format == "JPEG" else output_choice
+        download_name = f"{Path(safe_name).stem}.{extension}"
+        return send_file(
+            output,
+            mimetype=mimetype,
+            as_attachment=True,
+            download_name=download_name,
+        )
+
+    @app.post("/dataset/upload/<label>")
+    def upload_dataset_images(label):
+        if not app.config.get("TRAINING_TOOLS_ENABLED", False):
+            abort(404)
+
+        directory_name = DATASET_CLASS_DIRECTORIES.get(label)
+        if directory_name is None:
+            abort(404)
+
+        uploaded_files = request.files.getlist("images")
+        if not uploaded_files:
+            return jsonify({"message": "Choose at least one image."}), 400
+
+        destination = dataset_dir / directory_name
+        destination.mkdir(parents=True, exist_ok=True)
+        stored = 0
+        errors = []
+
+        for uploaded_file in uploaded_files:
+            if not uploaded_file.filename:
+                continue
+
+            safe_name = secure_filename(uploaded_file.filename)
+            extension = Path(safe_name).suffix.lower()
+            expected_format = DATASET_IMAGE_FORMATS.get(extension)
+            if not safe_name or expected_format is None:
+                errors.append(f"{uploaded_file.filename}: unsupported image format")
+                continue
+
+            try:
+                with Image.open(uploaded_file.stream) as image:
+                    actual_format = image.format
+                    image.verify()
+                if actual_format != expected_format:
+                    errors.append(f"{uploaded_file.filename}: extension does not match image content")
+                    continue
+
+                uploaded_file.stream.seek(0)
+                uploaded_file.save(destination / f"{uuid4().hex}{extension}")
+                stored += 1
+            except (UnidentifiedImageError, OSError, ValueError) as error:
+                app.logger.info("Rejected dataset image %s: %s", safe_name, error)
+                errors.append(f"{uploaded_file.filename}: invalid image")
+
+        if not stored:
+            return jsonify({
+                "message": "No valid images were added.",
+                "errors": errors,
+            }), 400
+
+        count = sum(
+            path.is_file() and path.suffix.lower() in DATASET_IMAGE_FORMATS
+            for path in destination.rglob("*")
+        )
+        return jsonify({"stored": stored, "count": count, "errors": errors})
 
     @app.post("/upload")
     def upload():
@@ -160,18 +347,28 @@ def create_app(test_config=None):
         ]
 
         try:
-            metadata = analyze_metadata(file_path)
-
-            ela = analyze_ela(file_path, generated_files[0])
-
-            copy_move = analyze_copy_move(
-                file_path,
-                generated_files[1],
-            )
-
-            compression = analyze_compression(file_path)
-            noise = analyze_noise(file_path)
-            ml = predict_image(file_path, model_path=app.config.get("MODEL_PATH"))
+            analysis_jobs = {
+                "metadata": ANALYSIS_EXECUTOR.submit(analyze_metadata, file_path),
+                "ela": ANALYSIS_EXECUTOR.submit(
+                    analyze_ela, file_path, generated_files[0]
+                ),
+                "copy_move": ANALYSIS_EXECUTOR.submit(
+                    analyze_copy_move, file_path, generated_files[1]
+                ),
+                "compression": ANALYSIS_EXECUTOR.submit(analyze_compression, file_path),
+                "noise": ANALYSIS_EXECUTOR.submit(analyze_noise, file_path),
+                "ml": ANALYSIS_EXECUTOR.submit(
+                    predict_image,
+                    file_path,
+                    model_path=app.config.get("MODEL_PATH"),
+                ),
+            }
+            metadata = analysis_jobs["metadata"].result()
+            ela = analysis_jobs["ela"].result()
+            copy_move = analysis_jobs["copy_move"].result()
+            compression = analysis_jobs["compression"].result()
+            noise = analysis_jobs["noise"].result()
+            ml = analysis_jobs["ml"].result()
 
             assessment = aggregate_evidence(
                 metadata,
@@ -196,8 +393,37 @@ def create_app(test_config=None):
             )
             return "An internal error occurred during image analysis.", 500
 
-        authenticity_score = max(0.0, min(100.0, (1.0 - assessment["evidence_score"]) * 100.0))
         manipulation_score = max(0.0, min(100.0, assessment["evidence_score"] * 100.0))
+        ml_flags_manipulation = (
+            ml.get("available", False)
+            and str(ml.get("predicted_class", "")).strip().casefold()
+            in {"manipulated", "tampered", "forged", "fake"}
+        )
+        has_strong_copy_move = (
+            copy_move.get("matches", 0) >= STRONG_COPY_MOVE_MATCHES
+        )
+
+        if (
+            assessment["evidence_score"] >= 0.60
+            or ml_flags_manipulation
+            or has_strong_copy_move
+        ):
+            verdict_state = "manipulated"
+            verdict_label = "Fake"
+            verdict_context = (
+                "Automated analysis classified this image as fake based on "
+                "strong forensic signals, including verified duplicate "
+                "features when present. This is a screening result, not "
+                "definitive proof."
+            )
+        else:
+            verdict_state = "authentic"
+            verdict_label = "Real"
+            verdict_context = (
+                "Automated analysis classified this image as real because "
+                "manipulation signals were below the decision threshold. "
+                "This is a screening result, not definitive proof."
+            )
 
         return render_template(
             "results.html",
@@ -209,7 +435,11 @@ def create_app(test_config=None):
             assessment=assessment,
             ml=ml,
             image_url=url_for("uploaded_file", filename=filename),
-            authenticity_score=round(authenticity_score, 1),
+            ela_url=url_for("result_file", filename=generated_files[0].name),
+            copy_move_url=url_for("result_file", filename=generated_files[1].name),
+            verdict_state=verdict_state,
+            verdict_label=verdict_label,
+            verdict_context=verdict_context,
             manipulation_score=round(manipulation_score, 1),
         )
 

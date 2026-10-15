@@ -28,7 +28,13 @@ def predict_image(image_path, model_path=None):
         raise ValueError("Invalid ML model artifact.")
 
     if artifact.get("feature_version") != FEATURE_VERSION:
-        raise ValueError("Model feature version does not match the extractor.")
+        return {
+            "available": False,
+            "message": (
+                "The saved model uses outdated features. Retrain it with "
+                "a sufficiently large, real labeled dataset."
+            ),
+        }
 
     model = artifact.get("model")
     if model is None:
