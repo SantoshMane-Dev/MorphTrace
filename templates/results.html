@@ -27,22 +27,21 @@
                 <img src="{{ image_url }}" alt="Uploaded image being reviewed" class="image-preview">
                 <div class="result-overlay verdict-{{ verdict_state }}">
                     <div>
-                        <span class="result-overline">MorphTrace assessment</span>
                         <h1 id="result-heading">{{ verdict_label }}</h1>
-                        <span class="verdict-context">{{ verdict_context }}</span>
                     </div>
                     <div class="result-score-pill">
                         <strong>{{ manipulation_score }}%</strong>
-                        <span>evidence score</span>
+                        <span>manipulation score</span>
                     </div>
                 </div>
             </div>
 
+            <p class="verdict-context">{{ verdict_context }}</p>
             <p class="result-disclaimer">{{ assessment.score_interpretation }}</p>
 
             <div class="result-highlights" aria-label="Primary analysis results">
                 <div class="result-highlight result-highlight--{{ verdict_state }}">
-                    <span class="result-highlight-label">Forensic verdict</span>
+                    <span class="result-highlight-label">Result</span>
                     <strong>{{ verdict_label }}</strong>
                     <span>{{ manipulation_score }}% evidence score</span>
                 </div>
@@ -108,7 +107,7 @@
                             </div>
                             <small class="signal-detail">
                                 {% if name == "ela" %}
-                                Mean pixel difference: {{ ela.mean_difference }}; maximum: {{ ela.max_difference }}
+                                {{ ela.note }} Mean pixel difference: {{ ela.mean_difference }}; maximum: {{ ela.max_difference }}
                                 {% elif name == "copy_move" %}
                                 Candidate feature matches: {{ copy_move.matches }}
                                 {% elif name == "compression" %}
@@ -185,7 +184,7 @@
                             <img src="{{ ela_url }}" alt="Error Level Analysis difference map">
                             <figcaption>
                                 <strong>ELA difference map</strong>
-                                <span>Shows differences after JPEG recompression; bright areas need context.</span>
+                                <span>{{ ela.note }} Bright areas need context.</span>
                             </figcaption>
                         </figure>
                         <figure class="artifact-card">

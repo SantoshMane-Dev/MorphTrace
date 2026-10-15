@@ -95,8 +95,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 			const request = new XMLHttpRequest();
 			const formData = new FormData(form);
-			let analysisProgress = 0;
-			let analysisTimer = null;
 
 			progressWrap.classList.add("is-running", "is-uploading");
 			progressWrap.classList.remove("is-analyzing", "is-complete", "is-error");
@@ -109,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				if (!progressEvent.lengthComputable) {
 					return;
 				}
-				const uploadPercent = (progressEvent.loaded / progressEvent.total) * 80;
+				const uploadPercent = (progressEvent.loaded / progressEvent.total) * 100;
 				setProgress(uploadPercent);
 				progressText.textContent = `Uploading image... ${Math.round(uploadPercent)}%`;
 			});
@@ -117,20 +115,15 @@ document.addEventListener("DOMContentLoaded", () => {
 			request.upload.addEventListener("load", () => {
 				progressWrap.classList.remove("is-uploading");
 				progressWrap.classList.add("is-analyzing");
-				setProgress(80);
-				progressText.textContent = "Image uploaded. Analyzing... 80%";
-				analysisTimer = window.setInterval(() => {
-					analysisProgress = Math.min(97, analysisProgress + 1);
-					const value = 80 + analysisProgress * 0.17;
-					setProgress(value);
-					progressText.textContent = `Analyzing image... ${Math.round(value)}%`;
-				}, 400);
+				progressBar.classList.add("is-indeterminate");
+				progressTrack.removeAttribute("aria-valuenow");
+				progressTrack.setAttribute("aria-valuetext", "Analysis in progress");
+				progressText.textContent = "Analyzing image. This may take a few moments.";
 			});
 
 			request.addEventListener("load", () => {
-				if (analysisTimer) {
-					window.clearInterval(analysisTimer);
-				}
+				progressBar.classList.remove("is-indeterminate");
+				progressTrack.removeAttribute("aria-valuetext");
 				if (request.status >= 200 && request.status < 400 && request.responseURL) {
 					progressWrap.classList.remove("is-analyzing");
 					progressWrap.classList.add("is-complete");
@@ -147,9 +140,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			});
 
 			request.addEventListener("error", () => {
-				if (analysisTimer) {
-					window.clearInterval(analysisTimer);
-				}
+				progressBar.classList.remove("is-indeterminate");
+				progressTrack.removeAttribute("aria-valuetext");
 				progressText.textContent = "Could not connect. Please try again.";
 				progressText.classList.add("is-error");
 				progressWrap.classList.add("is-error");

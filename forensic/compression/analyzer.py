@@ -4,6 +4,15 @@ import cv2
 import numpy as np
 
 
+_DCT_FREQUENCIES = np.arange(8, dtype=np.float32)[:, None]
+_DCT_POSITIONS = np.arange(8, dtype=np.float32)[None, :]
+_DCT_BASIS = np.cos(
+    np.pi * (2 * _DCT_POSITIONS + 1) * _DCT_FREQUENCIES / 16
+).astype(np.float32)
+_DCT_BASIS[0] /= np.sqrt(2)
+_DCT_BASIS *= 0.5
+
+
 def analyze_compression(image_path):
     image_path = Path(image_path)
 
@@ -29,20 +38,17 @@ def analyze_compression(image_path):
 
     cropped = image[:usable_height, :usable_width].astype(np.float32)
 
-    block_scores = []
-
-    for y in range(0, usable_height, 8):
-        for x in range(0, usable_width, 8):
-            block = cropped[y:y + 8, x:x + 8]
-
-            dct = cv2.dct(block)
-
-            high_frequency = np.abs(dct[4:, 4:])
-            score = float(np.mean(high_frequency))
-
-            block_scores.append(score)
-
-    mean_high_frequency = float(np.mean(block_scores))
+    blocks = cropped.reshape(
+        usable_height // 8, 8, usable_width // 8, 8
+    ).transpose(0, 2, 1, 3)
+    dct_blocks = np.einsum(
+        "ui,...ij,vj->...uv",
+        _DCT_BASIS,
+        blocks,
+        _DCT_BASIS,
+        optimize=True,
+    )
+    mean_high_frequency = float(np.abs(dct_blocks[..., 4:, 4:]).mean())
 
     # This is a heuristic forensic signal, not a probability.
     normalized_score = min(mean_high_frequency / 50.0, 1.0)

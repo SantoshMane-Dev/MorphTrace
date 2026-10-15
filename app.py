@@ -1,6 +1,8 @@
 
 import logging
+import os
 import re
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
@@ -67,6 +69,11 @@ CONVERT_OUTPUT_FORMATS = {
 
 MAX_UPLOAD_BYTES = 16 * 1024 * 1024
 UPLOAD_NAME_PATTERN = re.compile(r"^[0-9a-f]{32}\.(jpg|jpeg|png)$")
+STRONG_COPY_MOVE_MATCHES = 30
+ANALYSIS_EXECUTOR = ThreadPoolExecutor(
+    max_workers=4,
+    thread_name_prefix="morphtrace-analysis",
+)
 
 
 def create_app(test_config=None):
@@ -75,6 +82,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         MAX_CONTENT_LENGTH=MAX_UPLOAD_BYTES,
         MODEL_PATH=None,
+        TRAINING_TOOLS_ENABLED=os.environ.get("MORPHTRACE_ENABLE_TRAINING_TOOLS") == "1",
     )
 
     if test_config:
@@ -107,6 +115,9 @@ def create_app(test_config=None):
 
     @app.get("/training")
     def training():
+        if not app.config.get("TRAINING_TOOLS_ENABLED", False):
+            abort(404)
+
         dataset_counts = {
             label: sum(
                 path.is_file() and path.suffix.lower() in DATASET_IMAGE_FORMATS
@@ -190,6 +201,9 @@ def create_app(test_config=None):
 
     @app.post("/dataset/upload/<label>")
     def upload_dataset_images(label):
+        if not app.config.get("TRAINING_TOOLS_ENABLED", False):
+            abort(404)
+
         directory_name = DATASET_CLASS_DIRECTORIES.get(label)
         if directory_name is None:
             abort(404)
@@ -333,18 +347,28 @@ def create_app(test_config=None):
         ]
 
         try:
-            metadata = analyze_metadata(file_path)
-
-            ela = analyze_ela(file_path, generated_files[0])
-
-            copy_move = analyze_copy_move(
-                file_path,
-                generated_files[1],
-            )
-
-            compression = analyze_compression(file_path)
-            noise = analyze_noise(file_path)
-            ml = predict_image(file_path, model_path=app.config.get("MODEL_PATH"))
+            analysis_jobs = {
+                "metadata": ANALYSIS_EXECUTOR.submit(analyze_metadata, file_path),
+                "ela": ANALYSIS_EXECUTOR.submit(
+                    analyze_ela, file_path, generated_files[0]
+                ),
+                "copy_move": ANALYSIS_EXECUTOR.submit(
+                    analyze_copy_move, file_path, generated_files[1]
+                ),
+                "compression": ANALYSIS_EXECUTOR.submit(analyze_compression, file_path),
+                "noise": ANALYSIS_EXECUTOR.submit(analyze_noise, file_path),
+                "ml": ANALYSIS_EXECUTOR.submit(
+                    predict_image,
+                    file_path,
+                    model_path=app.config.get("MODEL_PATH"),
+                ),
+            }
+            metadata = analysis_jobs["metadata"].result()
+            ela = analysis_jobs["ela"].result()
+            copy_move = analysis_jobs["copy_move"].result()
+            compression = analysis_jobs["compression"].result()
+            noise = analysis_jobs["noise"].result()
+            ml = analysis_jobs["ml"].result()
 
             assessment = aggregate_evidence(
                 metadata,
@@ -369,35 +393,36 @@ def create_app(test_config=None):
             )
             return "An internal error occurred during image analysis.", 500
 
-        authenticity_score = max(0.0, min(100.0, (1.0 - assessment["evidence_score"]) * 100.0))
         manipulation_score = max(0.0, min(100.0, assessment["evidence_score"] * 100.0))
         ml_flags_manipulation = (
             ml.get("available", False)
             and str(ml.get("predicted_class", "")).strip().casefold()
             in {"manipulated", "tampered", "forged", "fake"}
         )
-        verdict_context = assessment["assessment"]
+        has_strong_copy_move = (
+            copy_move.get("matches", 0) >= STRONG_COPY_MOVE_MATCHES
+        )
 
-        if assessment["evidence_score"] >= 0.60:
+        if (
+            assessment["evidence_score"] >= 0.60
+            or ml_flags_manipulation
+            or has_strong_copy_move
+        ):
             verdict_state = "manipulated"
-            verdict_label = "Likely manipulated"
-        elif assessment["evidence_score"] >= 0.30:
-            verdict_state = "review"
-            verdict_label = "Needs review"
-        elif ml_flags_manipulation:
-            verdict_state = "review"
-            verdict_label = "Needs review"
+            verdict_label = "Fake"
             verdict_context = (
-                "The ML model flags possible manipulation, but forensic "
-                "signals are low. Treat this result as inconclusive and "
-                "review manually."
+                "Automated analysis classified this image as fake based on "
+                "strong forensic signals, including verified duplicate "
+                "features when present. This is a screening result, not "
+                "definitive proof."
             )
         else:
-            verdict_state = "inconclusive"
-            verdict_label = "No clear evidence"
+            verdict_state = "authentic"
+            verdict_label = "Real"
             verdict_context = (
-                "Available signals are weak; this analysis cannot confirm "
-                "authenticity or manipulation."
+                "Automated analysis classified this image as real because "
+                "manipulation signals were below the decision threshold. "
+                "This is a screening result, not definitive proof."
             )
 
         return render_template(
@@ -415,7 +440,6 @@ def create_app(test_config=None):
             verdict_state=verdict_state,
             verdict_label=verdict_label,
             verdict_context=verdict_context,
-            authenticity_score=round(authenticity_score, 1),
             manipulation_score=round(manipulation_score, 1),
         )
 

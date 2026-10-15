@@ -64,6 +64,8 @@ def aggregate_evidence(
             })
 
     ela_score = _bounded_score(ela.get("score", 0.0))
+    if ela.get("applicable") is False:
+        ela_score = 0.0
     copy_move_matches = _nonnegative_int(copy_move.get("matches", 0))
     copy_move_score = _bounded_score(
         copy_move.get("score", copy_move_matches / 50.0)

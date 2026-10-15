@@ -19,6 +19,7 @@ def client(tmp_path):
         "RESULTS_DIR": str(tmp_path / "results"),
         "DATASET_DIR": str(tmp_path / "dataset"),
         "MAX_CONTENT_LENGTH": 16 * 1024 * 1024,
+        "TRAINING_TOOLS_ENABLED": True,
     })
     return app.test_client()
 
@@ -36,6 +37,8 @@ def test_homepage_loads(client):
     assert response.status_code == 200
     assert b"Format converter" in response.data
     assert b"Image forensics" in response.data
+    assert b"Training tools" not in response.data
+    assert b"IMAGE INTEGRITY / FILE UTILITIES" not in response.data
     assert b"LOCAL WORKSPACE" not in response.data
 
 
@@ -63,6 +66,20 @@ def test_training_workspace_loads(client):
     assert response.status_code == 200
     assert b"Add original images" in response.data
     assert b"Add manipulated images" in response.data
+
+
+def test_training_tools_are_hidden_by_default(tmp_path, monkeypatch):
+    monkeypatch.delenv("MORPHTRACE_ENABLE_TRAINING_TOOLS", raising=False)
+    app = create_app({
+        "TESTING": True,
+        "UPLOAD_DIR": str(tmp_path / "uploads"),
+        "RESULTS_DIR": str(tmp_path / "results"),
+        "DATASET_DIR": str(tmp_path / "dataset"),
+    })
+    client = app.test_client()
+
+    assert client.get("/training").status_code == 404
+    assert client.post("/dataset/upload/original").status_code == 404
 
 
 def test_converter_converts_jpeg_to_png(client):
@@ -252,11 +269,74 @@ def test_ml_manipulation_flag_prevents_authentic_verdict(tmp_path):
     response = client.get(upload_response.headers["Location"])
 
     assert response.status_code == 200
-    assert b"Needs review" in response.data
-    assert b"ML model flags possible manipulation" in response.data
+    assert b"Fake" in response.data
+    assert b"result-overlay verdict-manipulated" in response.data
+    assert b"result-highlight--manipulated" in response.data
 
 
-def test_stale_model_is_unavailable_and_weak_signals_are_inconclusive(tmp_path):
+def test_authentic_ml_result_uses_authentic_result_style(tmp_path):
+    model_path = tmp_path / "authentic_classifier.joblib"
+    model = DummyClassifier(strategy="constant", constant="authentic")
+    model.fit(
+        np.array([[0.0, 0.0], [1.0, 1.0]]),
+        np.array(["authentic", "authentic"]),
+    )
+    joblib.dump({"model": model, "feature_version": FEATURE_VERSION}, model_path)
+
+    app = create_app({
+        "TESTING": True,
+        "UPLOAD_DIR": str(tmp_path / "uploads"),
+        "RESULTS_DIR": str(tmp_path / "results"),
+        "MODEL_PATH": str(model_path),
+        "MAX_CONTENT_LENGTH": 16 * 1024 * 1024,
+    })
+    client = app.test_client()
+    upload_response = client.post(
+        "/upload",
+        data={"image": (make_image(), "sample.jpg")},
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+
+    response = client.get(upload_response.headers["Location"])
+
+    assert response.status_code == 200
+    assert b"Real" in response.data
+    assert b"result-overlay verdict-authentic" in response.data
+    assert b"result-highlight--authentic" in response.data
+
+
+def test_strong_copy_move_signal_returns_fake_verdict(tmp_path):
+    rng = np.random.default_rng(13)
+    pixels = rng.integers(0, 256, (600, 800, 3), dtype=np.uint8)
+    pixels[280:480, 480:680] = pixels[90:290, 80:280].copy()
+    image_buffer = io.BytesIO()
+    Image.fromarray(pixels).save(image_buffer, format="JPEG", quality=94)
+    image_buffer.seek(0)
+
+    app = create_app({
+        "TESTING": True,
+        "UPLOAD_DIR": str(tmp_path / "uploads"),
+        "RESULTS_DIR": str(tmp_path / "results"),
+        "MODEL_PATH": str(tmp_path / "no-model.joblib"),
+        "MAX_CONTENT_LENGTH": 16 * 1024 * 1024,
+    })
+    client = app.test_client()
+    upload_response = client.post(
+        "/upload",
+        data={"image": (image_buffer, "copied-region.jpg")},
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+
+    response = client.get(upload_response.headers["Location"])
+
+    assert response.status_code == 200
+    assert b"Fake" in response.data
+    assert b"result-overlay verdict-manipulated" in response.data
+
+
+def test_stale_model_is_unavailable_and_weak_signals_return_real(tmp_path):
     model_path = tmp_path / "stale-model.joblib"
     model = DummyClassifier(strategy="constant", constant="authentic")
     model.fit(np.array([[0.0], [1.0]]), np.array(["authentic", "authentic"]))
@@ -280,5 +360,5 @@ def test_stale_model_is_unavailable_and_weak_signals_are_inconclusive(tmp_path):
     response = client.get(upload_response.headers["Location"])
 
     assert response.status_code == 200
-    assert b"No clear evidence" in response.data
+    assert b"Real" in response.data
     assert b"outdated features" in response.data

@@ -45,6 +45,11 @@ Use `--evaluate-only` to compare algorithms without saving a model.
 Before relying on results, validate on separate source images that were
 not used for training or model selection.
 
+The web-based dataset curation page and upload endpoint are disabled by
+default. Enable them for a private development session with
+`MORPHTRACE_ENABLE_TRAINING_TOOLS=1` in the environment. Do not expose this
+setting on a public deployment without adding authentication.
+
 Classifier scores and forensic signal scores are not proof or calibrated
 probabilities. Missing EXIF metadata is also not evidence of manipulation.
 
