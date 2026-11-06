@@ -6,18 +6,19 @@
     <meta name="description" content="MorphTrace digital image forensic analysis results">
     <title>MorphTrace | Investigation Result</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% include "partials/visual_assets.html" %}
 </head>
 <body class="results-page editorial-results">
 <div class="page-shell results-shell">
     <header class="topbar results-topbar editorial-topbar">
         <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
-            <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+            {% include "partials/brand_scene.html" %}
             <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS / REPORT</small></span>
         </a>
         <nav class="editorial-nav" aria-label="Report navigation">
             <a href="{{ url_for('inspect') }}">Forensics</a>
-            <a href="{{ url_for('convert') }}">Convert</a>
-            <a href="{{ url_for('roadmap') }}">Roadmap</a>
+            <a href="{{ url_for('index') }}#tools">Image tools</a>
+            <a href="{{ url_for('roadmap') }}">Upcoming features</a>
         </nav>
     </header>
 

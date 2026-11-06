@@ -9,19 +9,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% include "partials/visual_assets.html" %}
 </head>
 <body class="landing-page editorial-home">
     <div class="paper-grain" aria-hidden="true"></div>
     <div class="page-shell landing-shell editorial-shell">
         <header class="topbar editorial-topbar">
             <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
-                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                {% include "partials/brand_scene.html" %}
                 <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS &amp; TOOLS</small></span>
             </a>
             <nav class="editorial-nav" aria-label="Main navigation">
-                <a href="{{ url_for('inspect') }}">Forensics</a>
-                <a href="{{ url_for('convert') }}">Convert</a>
-                <a href="{{ url_for('roadmap') }}">Roadmap</a>
+                <a class="nav-primary" href="{{ url_for('inspect') }}">Forensic review <span aria-hidden="true">&#8594;</span></a>
+                <a href="#tools">Image tools</a>
+                <a href="{{ url_for('roadmap') }}">Upcoming features</a>
             </nav>
         </header>
 
@@ -30,44 +31,76 @@
                 <div class="hero-copy">
                     <p class="case-eyebrow"><span>IMAGE AUTHENTICITY</span></p>
                     <h1 id="hero-title">Every image<br>leaves a <em>trace.</em></h1>
-                    <p class="hero-deck">Review image integrity, inspect evidence, and convert common file formats with practical tools in one place.</p>
+                    <p class="hero-deck">Investigate image integrity with explainable forensic signals. Supporting image utilities are here when you need them.</p>
                     <div class="hero-actions">
-                        <a class="action-link action-primary" href="{{ url_for('inspect') }}">Inspect an image <span aria-hidden="true">&#8594;</span></a>
-                        <a class="action-link action-secondary" href="{{ url_for('convert') }}">Convert a file <span aria-hidden="true">&#8595;</span></a>
+                        <a class="action-link action-primary" href="{{ url_for('inspect') }}">Start forensic review <span aria-hidden="true">&#8594;</span></a>
+                        <a class="action-link action-secondary" href="#tools">Other image tools <span aria-hidden="true">&#8595;</span></a>
                     </div>
                 </div>
 
-                <figure class="hero-illustration forensic-portrait">
-                    <div class="portrait-screen">
-                        <img src="{{ url_for('static', filename='img/forensic-analyst.webp') }}" alt="Woman working with technical imaging equipment">
-                        <span class="portrait-binary portrait-binary-left" aria-hidden="true">01001001<br>10110100<br>00101101<br>11001010<br>01100101<br>10010110</span>
-                        <span class="portrait-binary portrait-binary-right" aria-hidden="true">10110010<br>01001101<br>11100010<br>00110101<br>10011001<br>01101010</span>
-                        <svg class="portrait-dna" viewBox="0 0 80 260" aria-hidden="true" focusable="false">
-                            <path d="M18 8C70 38 70 62 18 92S-34 146 18 176s52 44 0 76M62 8C10 38 10 62 62 92s52 54 0 84-52 44 0 76" />
-                            <path class="dna-rungs" d="M25 19h30M38 43h20M34 68h24M20 91h36M22 117h34M34 143h24M40 169h20M26 194h30M20 220h34M27 244h30" />
+                <aside class="forensic-console" aria-label="Forensic review signal overview">
+                    <div class="console-heading"><span class="console-status" aria-hidden="true"></span><span>MORPHTRACE / IMAGE FORENSICS</span><span>01—04</span></div>
+                    <div class="console-graphic" aria-hidden="true">
+                        <img class="console-image" src="{{ url_for('static', filename='img/module-video.webp') }}" alt="">
+                        <span class="console-three-scene">
+                            <span class="forensic-cube">
+                                <span class="cube-face cube-front"></span>
+                                <span class="cube-face cube-back"></span>
+                                <span class="cube-face cube-right"></span>
+                                <span class="cube-face cube-left"></span>
+                                <span class="cube-face cube-top"></span>
+                                <span class="cube-face cube-bottom"></span>
+                            </span>
+                        </span>
+                        <svg viewBox="0 0 520 260" focusable="false">
+                            <path class="console-grid" d="M0 52h520M0 104h520M0 156h520M0 208h520M65 0v260M130 0v260M195 0v260M260 0v260M325 0v260M390 0v260M455 0v260" />
+                            <rect class="console-region" x="104" y="76" width="118" height="127" rx="2" />
+                            <rect class="console-region console-region-alt" x="333" y="48" width="91" height="150" rx="2" />
+                            <path class="console-scan" d="M0 126h520" />
                         </svg>
-                        <span class="portrait-scan" aria-hidden="true"></span>
+                        <span class="console-axis console-axis-x">SIGNAL / POSITION</span>
+                        <span class="console-axis console-axis-y">REVIEW LAYERS</span>
                     </div>
-                    <figcaption><span>FORENSIC IMAGE REVIEW</span><span>VISUAL SIGNALS</span></figcaption>
-                </figure>
+                    <ul class="console-layers">
+                        <li><span>01</span>Metadata <b>CONTEXT</b></li>
+                        <li><span>02</span>Compression <b>ELA</b></li>
+                        <li><span>03</span>Copy-move <b>CANDIDATES</b></li>
+                        <li><span>04</span>Noise <b>VARIATION</b></li>
+                    </ul>
+                    <p class="console-footnote">Multiple signals to support review — never a verdict by themselves.</p>
+                </aside>
             </section>
 
-            <section class="tools-directory" aria-labelledby="tools-title">
+            <section class="tools-directory forensic-directory" id="forensics" aria-labelledby="forensics-title">
                 <div class="section-heading">
                     <div>
-                        <p class="section-index">IMAGE WORKFLOW</p>
-                        <h2 id="tools-title">Choose a tool.</h2>
+                        <p class="section-index">IMAGE AUTHENTICITY</p>
+                        <h2 id="forensics-title">Image forensic review</h2>
                     </div>
-                    <p class="section-aside">Image review / file conversion<br>More media tools on the roadmap</p>
+                    <p class="section-aside">Review multiple technical signals<br>with evidence and context.</p>
                 </div>
                 <div class="tools-grid">
                     <a class="tool-card tool-card-forensics" href="{{ url_for('inspect') }}">
-                        <span class="tool-card-index">01 / ANALYZE</span>
+                        <span class="tool-card-index">MORPHTRACE / FORENSIC ANALYSIS</span>
                         <span class="tool-card-icon" aria-hidden="true">&#9678;</span>
-                        <h3>Image forensics</h3>
-                        <p>Review metadata, compression, noise, and localized image clues.</p>
-                        <span class="tool-card-link">Open forensic review <b aria-hidden="true">&#8594;</b></span>
+                        <div class="tool-card-copy">
+                            <h3>Investigate image integrity.</h3>
+                            <p>Review metadata, compression differences, copy-move candidates, noise patterns, and localized visual evidence together.</p>
+                            <span class="tool-card-link">Open forensic review <b aria-hidden="true">&#8594;</b></span>
+                        </div>
                     </a>
+                </div>
+            </section>
+
+            <section class="tools-directory utilities-directory" id="tools" aria-labelledby="tools-title">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-index">SUPPORTING UTILITIES</p>
+                        <h2 id="tools-title">Image tools</h2>
+                    </div>
+                    <p class="section-aside">Practical tools for preparing,<br>checking, and comparing images.</p>
+                </div>
+                <div class="tools-grid">
                     <a class="tool-card tool-card-convert" href="{{ url_for('convert') }}">
                         <span class="tool-card-index">02 / CONVERT</span>
                         <span class="tool-card-icon" aria-hidden="true">&#8644;</span>
@@ -75,8 +108,29 @@
                         <p>Convert JPG, PNG, and WebP images to image formats or PDF.</p>
                         <span class="tool-card-link">Open converter <b aria-hidden="true">&#8594;</b></span>
                     </a>
+                    <a class="tool-card tool-card-resize" href="{{ url_for('resize') }}">
+                        <span class="tool-card-index">03 / RESIZE</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#8596;</span>
+                        <h3>Resize &amp; compress</h3>
+                        <p>Scale images to fit custom dimensions and tune JPG or WebP quality.</p>
+                        <span class="tool-card-link">Open image resizer <b aria-hidden="true">&#8594;</b></span>
+                    </a>
+                    <a class="tool-card tool-card-compare" href="{{ url_for('compare') }}">
+                        <span class="tool-card-index">04 / COMPARE</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#8646;</span>
+                        <h3>Side-by-side compare</h3>
+                        <p>View two image files together with dimensions and file-size details.</p>
+                        <span class="tool-card-link">Compare images locally <b aria-hidden="true">&#8594;</b></span>
+                    </a>
+                    <a class="tool-card tool-card-metadata" href="{{ url_for('metadata_viewer') }}">
+                        <span class="tool-card-index">05 / INSPECT</span>
+                        <span class="tool-card-icon" aria-hidden="true">&#9776;</span>
+                        <h3>Metadata viewer</h3>
+                        <p>Inspect image dimensions, EXIF tags, and embedded container details.</p>
+                        <span class="tool-card-link">View image metadata <b aria-hidden="true">&#8594;</b></span>
+                    </a>
                     <a class="tool-card tool-card-roadmap" href="{{ url_for('roadmap') }}">
-                        <span class="tool-card-index">03 / IN DEVELOPMENT</span>
+                        <span class="tool-card-index">COMING NEXT</span>
                         <span class="tool-card-icon" aria-hidden="true">&#8599;</span>
                         <h3>More media tools</h3>
                         <p>See planned video, motion, and audio analysis modules.</p>
@@ -84,8 +138,36 @@
                     </a>
                 </div>
             </section>
+
+            <section class="home-section checks-section" id="checks" aria-labelledby="checks-title">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-index">INSIDE FORENSIC REVIEW</p>
+                        <h2 id="checks-title">More than one kind of clue.</h2>
+                    </div>
+                    <a class="action-link action-secondary" href="{{ url_for('inspect') }}">Explore image forensics <span aria-hidden="true">&#8594;</span></a>
+                </div>
+                <div class="checks-grid">
+                    <article><span>01</span><h3>Metadata</h3><p>Read available EXIF and container details, while remembering that metadata can be missing or changed.</p></article>
+                    <article><span>02</span><h3>Compression patterns</h3><p>Explore error-level and compression clues that can highlight areas worth a closer look.</p></article>
+                    <article><span>03</span><h3>Repeated features</h3><p>Surface possible copy-move matches as candidates, not confirmed edits.</p></article>
+                    <article><span>04</span><h3>Noise &amp; model signals</h3><p>Compare additional statistical signals where available; no single score proves manipulation.</p></article>
+                </div>
+            </section>
+
+            <section class="home-section privacy-section" id="privacy" aria-labelledby="privacy-title">
+                <div>
+                    <p class="section-index">A NOTE ON EVIDENCE &amp; PRIVACY</p>
+                    <h2 id="privacy-title">Tools for review.<br><em>Not a verdict.</em></h2>
+                </div>
+                <div class="privacy-copy">
+                    <p>Image processing can surface useful leads, but ordinary editing, resizing, recompression, and camera pipelines can also affect forensic signals. Treat every result in context and corroborate it independently.</p>
+                    <p>Image comparison runs locally in your browser. Converter and resize uploads are processed in memory; the metadata viewer uses temporary request storage. Forensic reviews keep uploaded images and generated evidence in the configured workspace. Avoid sharing sensitive images unless you trust the deployment you are using.</p>
+                </div>
+            </section>
         </main>
 
+        <footer class="editorial-footer home-footer"><a href="{{ url_for('roadmap') }}">See what is planned</a><span>MORPHTRACE / IMAGE REVIEW, WITH CONTEXT</span></footer>
     </div>
 </body>
 </html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compare two images locally side by side with MorphTrace">
+    <title>MorphTrace | Image Comparison</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% include "partials/visual_assets.html" %}
+</head>
+<body class="editorial-home tools-page compare-page">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-shell editorial-shell tools-shell">
+        <header class="topbar editorial-topbar">
+            <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+                {% include "partials/brand_scene.html" %}
+                <span class="editorial-wordmark">MorphTrace<small>IMAGE TOOLS</small></span>
+            </a>
+            <nav class="editorial-nav" aria-label="Main navigation">
+                <a class="nav-primary" href="{{ url_for('inspect') }}">Forensics <span aria-hidden="true">&#8594;</span></a>
+                <a href="{{ url_for('index') }}#tools">All tools</a>
+                <a href="{{ url_for('roadmap') }}">Upcoming features</a>
+            </nav>
+        </header>
+
+        <main class="tool-main">
+            <section class="tool-intro" aria-labelledby="compare-title">
+                <p class="section-index">IMAGE UTILITIES / 03</p>
+                <h1 id="compare-title">Put two frames side by side.</h1>
+                <p>Select two images to compare their appearance and basic dimensions. Files stay in this browser and are never uploaded.</p>
+            </section>
+
+            <section class="compare-grid" aria-label="Image comparison">
+                <article class="compare-panel">
+                    <label class="compare-picker" for="compare-image-a">
+                        <span>01 / FIRST IMAGE</span>
+                        <strong>Choose first image</strong>
+                        <input type="file" id="compare-image-a" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                    </label>
+                    <div class="compare-preview"><img alt="First selected image preview" hidden></div>
+                    <p class="compare-file-info" aria-live="polite">No image selected</p>
+                </article>
+                <article class="compare-panel">
+                    <label class="compare-picker" for="compare-image-b">
+                        <span>02 / SECOND IMAGE</span>
+                        <strong>Choose second image</strong>
+                        <input type="file" id="compare-image-b" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+                    </label>
+                    <div class="compare-preview"><img alt="Second selected image preview" hidden></div>
+                    <p class="compare-file-info" aria-live="polite">No image selected</p>
+                </article>
+            </section>
+            <p class="utility-note">This visual comparison is not a forensic pixel-difference test and cannot establish that either image is authentic.</p>
+        </main>
+
+        <footer class="editorial-footer"><a href="{{ url_for('index') }}#tools">All image tools</a><span>LOCAL PREVIEW / NO UPLOAD</span></footer>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

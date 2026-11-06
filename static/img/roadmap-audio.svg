@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 320">
+  <rect width="640" height="320" fill="#315c4c"/>
+  <path d="M0 160h640" stroke="#fff7e8" stroke-opacity=".2" stroke-width="2"/>
+  <g fill="none" stroke="#fff7e8" stroke-width="3" opacity=".24">
+    <path d="M40 40v240M100 40v240M160 40v240M220 40v240M280 40v240M340 40v240M400 40v240M460 40v240M520 40v240M580 40v240"/>
+  </g>
+  <path d="M32 160h38l18-30 18 62 21-116 24 174 24-102 20 32 20-20h28l18-62 19 122 20-68 22 18h25l18-35 18 70 20-40 19 12h42l19-80 20 150 20-89 19 28h44" fill="none" stroke="#f2a7b5" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="247" y="57" width="128" height="206" rx="8" fill="#fff7e8" fill-opacity=".08" stroke="#f2a7b5" stroke-width="3" stroke-dasharray="10 8"/>
+</svg>

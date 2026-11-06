@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Inspect image dimensions, format, and embedded metadata with MorphTrace">
+    <title>MorphTrace | Metadata Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% include "partials/visual_assets.html" %}
+</head>
+<body class="editorial-home tools-page">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-shell editorial-shell tools-shell">
+        <header class="topbar editorial-topbar">
+            <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+                {% include "partials/brand_scene.html" %}
+                <span class="editorial-wordmark">MorphTrace<small>IMAGE TOOLS</small></span>
+            </a>
+            <nav class="editorial-nav" aria-label="Main navigation">
+                <a class="nav-primary" href="{{ url_for('inspect') }}">Forensics <span aria-hidden="true">&#8594;</span></a>
+                <a href="{{ url_for('index') }}#tools">All tools</a>
+                <a href="{{ url_for('roadmap') }}">Upcoming features</a>
+            </nav>
+        </header>
+
+        <main class="tool-main">
+            <section class="tool-intro" aria-labelledby="metadata-title">
+                <p class="section-index">IMAGE UTILITIES / 02</p>
+                <h1 id="metadata-title">Read the details inside.</h1>
+                <p>Check image dimensions, color mode, EXIF tags, and other embedded container details.</p>
+            </section>
+
+            {% if not metadata %}
+            <form class="utility-form" action="{{ url_for('metadata_viewer') }}" method="post" enctype="multipart/form-data">
+                <label class="utility-file" for="metadata-image">
+                    <strong>Choose an image</strong>
+                    <small>JPG, PNG, or WebP / up to 16 MB</small>
+                    <input type="file" id="metadata-image" name="image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+                </label>
+                <p class="utility-note">The upload is inspected for this request only and is not added to the training collection. Metadata may contain location or device details, so review it before sharing.</p>
+                {% if error %}<p class="converter-error" role="alert">{{ error }}</p>{% endif %}
+                <button class="converter-submit" type="submit">Inspect metadata <span aria-hidden="true">&#8594;</span></button>
+            </form>
+            {% else %}
+            <section class="metadata-report" aria-labelledby="metadata-report-title">
+                <div class="metadata-report-heading">
+                    <div>
+                        <p class="section-index">METADATA REPORT</p>
+                        <h2 id="metadata-report-title">{{ metadata.filename }}</h2>
+                    </div>
+                    <a class="action-link action-secondary" href="{{ url_for('metadata_viewer') }}">Inspect another <span aria-hidden="true">&#8594;</span></a>
+                </div>
+                <dl class="meta-grid">
+                    <div><dt>Format</dt><dd>{{ metadata.format or "Unknown" }}</dd></div>
+                    <div><dt>Dimensions</dt><dd>{{ metadata.width }} × {{ metadata.height }}</dd></div>
+                    <div><dt>Color mode</dt><dd>{{ metadata.mode }}</dd></div>
+                    {% for name, value in metadata.container_metadata.items() %}
+                    <div><dt>{{ name }}</dt><dd>{{ value }}</dd></div>
+                    {% endfor %}
+                </dl>
+                <div class="metadata-tags">
+                    <h3>EXIF tags</h3>
+                    {% if metadata.exif %}
+                    <dl>
+                        {% for name, value in metadata.exif.items() %}
+                        <div><dt>{{ name }}</dt><dd>{{ value }}</dd></div>
+                        {% endfor %}
+                    </dl>
+                    {% else %}
+                    <p>No EXIF tags were found. Missing metadata alone is not evidence of manipulation.</p>
+                    {% endif %}
+                </div>
+                <p class="utility-note">Review location and device fields before sharing this report. This page does not establish when or how an image was edited.</p>
+            </section>
+            {% endif %}
+        </main>
+
+        <footer class="editorial-footer"><a href="{{ url_for('index') }}#tools">All image tools</a><span>INSPECT / UNDERSTAND / SHARE WITH CARE</span></footer>
+    </div>
+</body>
+</html>

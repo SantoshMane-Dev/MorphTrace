@@ -9,19 +9,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% include "partials/visual_assets.html" %}
 </head>
 <body class="editorial-home inspect-page">
     <div class="paper-grain" aria-hidden="true"></div>
     <div class="page-shell editorial-shell tools-shell">
         <header class="topbar editorial-topbar">
             <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
-                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                {% include "partials/brand_scene.html" %}
                 <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS</small></span>
             </a>
             <nav class="editorial-nav" aria-label="Main navigation">
-                <a href="{{ url_for('inspect') }}" aria-current="page">Forensics</a>
-                <a href="{{ url_for('convert') }}">Convert</a>
-                <a href="{{ url_for('roadmap') }}">Roadmap</a>
+                <a class="nav-primary" href="{{ url_for('inspect') }}" aria-current="page">Forensics <span aria-hidden="true">&#8594;</span></a>
+                <a href="{{ url_for('index') }}#tools">Image tools</a>
+                <a href="{{ url_for('roadmap') }}">Upcoming features</a>
             </nav>
         </header>
 
@@ -67,9 +68,9 @@
                             <li><span>02</span><span>Error-level map</span><b aria-hidden="true">&#8599;</b></li>
                             <li><span>03</span><span>Copy-move traces</span><b aria-hidden="true">&#8599;</b></li>
                             <li><span>04</span><span>Compression + noise</span><b aria-hidden="true">&#8599;</b></li>
-                            <li><span>05</span><span>ML model signal</span><b aria-hidden="true">&#8599;</b></li>
+                            <li><span>05</span><span>Optional ML insight</span><b>UNAVAILABLE</b></li>
                         </ol>
-                        <p class="signal-disclaimer">Automated signals support review. They are not proof of manipulation.</p>
+                        <p class="signal-disclaimer">The saved classifier needs retraining on a sufficiently large, validated dataset. Metadata, ELA, copy-move, compression, and noise checks still run independently.</p>
                     </aside>
                 </div>
             </section>

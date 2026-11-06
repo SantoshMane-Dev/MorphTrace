@@ -9,19 +9,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% include "partials/visual_assets.html" %}
 </head>
 <body class="editorial-home tools-page converter-page">
     <div class="paper-grain" aria-hidden="true"></div>
     <div class="page-shell editorial-shell tools-shell">
         <header class="topbar editorial-topbar">
             <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
-                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+                {% include "partials/brand_scene.html" %}
                 <span class="editorial-wordmark">MorphTrace<small>IMAGE TOOLS</small></span>
             </a>
             <nav class="editorial-nav" aria-label="Main navigation">
-                <a href="{{ url_for('inspect') }}">Forensics</a>
-                <a href="{{ url_for('convert') }}" aria-current="page">Convert</a>
-                <a href="{{ url_for('roadmap') }}">Roadmap</a>
+                <a class="nav-primary" href="{{ url_for('inspect') }}">Forensics <span aria-hidden="true">&#8594;</span></a>
+                <a href="{{ url_for('index') }}#tools">Image tools</a>
+                <a href="{{ url_for('roadmap') }}">Upcoming features</a>
             </nav>
         </header>
 

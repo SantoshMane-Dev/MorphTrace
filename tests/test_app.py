@@ -4,7 +4,7 @@ import io
 import joblib
 import numpy as np
 import pytest
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from sklearn.dummy import DummyClassifier
 
 from app import create_app
@@ -36,7 +36,14 @@ def test_homepage_loads(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"Format converter" in response.data
-    assert b"Image forensics" in response.data
+    assert b"Investigate image integrity." in response.data
+    assert b"Resize &amp; compress" in response.data
+    assert b"Side-by-side compare" in response.data
+    assert b"Metadata viewer" in response.data
+    assert b"MORPHTRACE / FORENSIC ANALYSIS" in response.data
+    assert b"A CLEAR PROCESS" not in response.data
+    assert b"Start a careful review" not in response.data
+    assert b"forensic-analyst.webp" not in response.data
     assert b"Training tools" not in response.data
     assert b"IMAGE INTEGRITY / FILE UTILITIES" not in response.data
     assert b"LOCAL WORKSPACE" not in response.data
@@ -46,12 +53,19 @@ def test_inspect_page_loads(client):
     response = client.get("/inspect")
     assert response.status_code == 200
     assert b"Drop a frame for review" in response.data
+    assert b"Optional ML insight" in response.data
+    assert b"needs retraining on a sufficiently large, validated dataset" in response.data
 
 
 def test_roadmap_page_loads(client):
     response = client.get("/roadmap")
     assert response.status_code == 200
-    assert b"Video integrity monitor" in response.data
+    assert b"AI-generated video review" in response.data
+    assert b"Morphed audio &amp; voice review" in response.data
+    assert b"Face morph &amp; swap review" in response.data
+    assert b"AI-generated image review" in response.data
+    assert b"Lip-sync &amp; media consistency" in response.data
+    assert b"Content credentials viewer" in response.data
 
 
 def test_converter_page_loads(client):
@@ -59,6 +73,86 @@ def test_converter_page_loads(client):
     assert response.status_code == 200
     assert b"Convert and download" in response.data
     assert b"PDF" in response.data
+
+
+def test_image_utility_pages_load(client):
+    assert client.get("/resize").status_code == 200
+    assert client.get("/metadata").status_code == 200
+    assert client.get("/compare").status_code == 200
+
+
+def test_resize_creates_bounded_webp_image(client):
+    response = client.post(
+        "/resize",
+        data={
+            "image": (make_image(), "sample.jpg"),
+            "max_width": "48",
+            "max_height": "64",
+            "quality": "80",
+            "output_format": "webp",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    assert response.mimetype == "image/webp"
+    resized = Image.open(io.BytesIO(response.data))
+    assert resized.format == "WEBP"
+    assert resized.size == (48, 48)
+
+
+def test_resize_removes_embedded_exif_metadata(client):
+    exif = Image.Exif()
+    exif[271] = "Sample Camera"
+    source = io.BytesIO()
+    Image.new("RGB", (128, 128), color="red").save(source, format="JPEG", exif=exif)
+    source.seek(0)
+
+    response = client.post(
+        "/resize",
+        data={
+            "image": (source, "sample.jpg"),
+            "max_width": "64",
+            "max_height": "64",
+            "quality": "80",
+            "output_format": "jpg",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    with Image.open(io.BytesIO(response.data)) as resized:
+        assert resized.getexif().get(271) is None
+
+
+def test_resize_rejects_dimensions_out_of_range(client):
+    response = client.post(
+        "/resize",
+        data={
+            "image": (make_image(), "sample.jpg"),
+            "max_width": "9000",
+            "max_height": "64",
+            "quality": "80",
+            "output_format": "webp",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+    assert b"between 1 and 8192" in response.data
+
+
+def test_metadata_viewer_displays_image_details(client):
+    response = client.post(
+        "/metadata",
+        data={"image": (make_image(), "sample.jpg")},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 200
+    assert b"sample.jpg" in response.data
+    assert b"128 \xc3\x97 128" in response.data
+    assert b"EXIF tags" in response.data
 
 
 def test_training_workspace_loads(client):
@@ -334,6 +428,41 @@ def test_strong_copy_move_signal_returns_fake_verdict(tmp_path):
     assert response.status_code == 200
     assert b"Fake" in response.data
     assert b"result-overlay verdict-manipulated" in response.data
+
+
+def test_repeated_text_does_not_trigger_fake_verdict(tmp_path):
+    image = Image.new("RGB", (1200, 500), "#f5f1e8")
+    draw = ImageDraw.Draw(image)
+    try:
+        font = ImageFont.truetype("DejaVuSans-Bold.ttf", 48)
+    except OSError:
+        font = ImageFont.load_default()
+    phrase = "Akash hu toh a do baar count"
+    draw.text((80, 80), phrase, font=font, fill="#183638")
+    draw.text((80, 260), phrase, font=font, fill="#183638")
+    image_buffer = io.BytesIO()
+    image.save(image_buffer, format="PNG")
+    image_buffer.seek(0)
+
+    app = create_app({
+        "TESTING": True,
+        "UPLOAD_DIR": str(tmp_path / "uploads"),
+        "RESULTS_DIR": str(tmp_path / "results"),
+        "MODEL_PATH": str(tmp_path / "no-model.joblib"),
+        "MAX_CONTENT_LENGTH": 16 * 1024 * 1024,
+    })
+    client = app.test_client()
+    upload_response = client.post(
+        "/upload",
+        data={"image": (image_buffer, "repeated-text.png")},
+        content_type="multipart/form-data",
+        follow_redirects=False,
+    )
+
+    response = client.get(upload_response.headers["Location"])
+
+    assert response.status_code == 200
+    assert b"result-overlay verdict-manipulated" not in response.data
 
 
 def test_stale_model_is_unavailable_and_weak_signals_return_real(tmp_path):

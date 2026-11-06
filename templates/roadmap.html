@@ -9,45 +9,62 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% include "partials/visual_assets.html" %}
 </head>
 <body class="editorial-home roadmap-page">
     <div class="paper-grain" aria-hidden="true"></div>
     <div class="page-shell editorial-shell tools-shell">
         <header class="topbar editorial-topbar">
             <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
-                <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
-                <span class="editorial-wordmark">MorphTrace<small>MEDIA TOOL ROADMAP</small></span>
+                {% include "partials/brand_scene.html" %}
+                <span class="editorial-wordmark">MorphTrace<small>MEDIA AUTHENTICITY ROADMAP</small></span>
             </a>
             <nav class="editorial-nav" aria-label="Main navigation">
-                <a href="{{ url_for('inspect') }}">Forensics</a>
-                <a href="{{ url_for('convert') }}">Convert</a>
-                <a href="{{ url_for('roadmap') }}" aria-current="page">Roadmap</a>
+                <a class="nav-primary" href="{{ url_for('inspect') }}">Forensics <span aria-hidden="true">&#8594;</span></a>
+                <a href="{{ url_for('index') }}#tools">Image tools</a>
+                <a href="{{ url_for('roadmap') }}" aria-current="page">Upcoming features</a>
             </nav>
         </header>
 
         <main class="tool-main roadmap-main">
             <section class="tool-intro" aria-labelledby="roadmap-title">
-                <p class="section-index">IN DEVELOPMENT</p>
-                <h1 id="roadmap-title">More ways to inspect <em>media.</em></h1>
-                <p>These are planned directions, not available tools yet.</p>
+                <p class="section-index">PLANNED / FUTURE MEDIA TOOLS</p>
+                <h1 id="roadmap-title">What we are building <em>toward.</em></h1>
+                <p>These concepts are not available yet. The focus is explainable checks that help people review media—not automated claims of certainty.</p>
             </section>
 
             <section class="future-section roadmap-modules" aria-labelledby="modules-title">
-                <h2 class="visually-hidden" id="modules-title">Planned modules</h2>
+                <div class="roadmap-section-heading">
+                    <h2 id="modules-title">Upcoming tool concepts</h2>
+                    <span>PLANNED / NOT YET AVAILABLE</span>
+                </div>
                 <div class="future-grid">
                     <article class="future-card">
-                        <img class="future-art" src="{{ url_for('static', filename='img/module-video.webp') }}" alt="Video frame under a forensic scan" loading="lazy">
-                        <div class="future-card-copy"><p class="future-tag">Planned</p><h3>Video integrity monitor</h3><p>Inspect suspicious frames, edits, and visual inconsistencies across video evidence.</p></div>
+                        <img class="future-art" src="{{ url_for('static', filename='img/roadmap-video.svg') }}" alt="Video frame sequence with a highlighted review region" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">VIDEO / SYNTHETIC MEDIA</p><h3>AI-generated video review</h3><p>Examine frame-to-frame consistency, visual artifacts, and editing traces. Findings would need human review and source context.</p></div>
                     </article>
                     <article class="future-card">
-                        <img class="future-art" src="{{ url_for('static', filename='img/module-motion.webp') }}" alt="Motion traces visualizing animated media analysis" loading="lazy">
-                        <div class="future-card-copy"><p class="future-tag">Planned</p><h3>Animated media analysis</h3><p>Trace altered motion, synthetic loops, and suspicious changes between frames.</p></div>
+                        <img class="future-art" src="{{ url_for('static', filename='img/roadmap-audio.svg') }}" alt="Audio waveform with a marked segment for review" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">AUDIO / SPEECH</p><h3>Morphed audio &amp; voice review</h3><p>Look for possible voice cloning, speech synthesis, splicing, and other audio edits without treating a score as proof.</p></div>
                     </article>
                     <article class="future-card">
-                        <img class="future-art" src="{{ url_for('static', filename='img/module-audio.webp') }}" alt="Audio waveform and signal display" loading="lazy">
-                        <div class="future-card-copy"><p class="future-tag">Planned</p><h3>Voice authenticity scan</h3><p>Review voice recordings for signs of synthetic speech and audio manipulation.</p></div>
+                        <img class="future-art" src="{{ url_for('static', filename='img/roadmap-face.svg') }}" alt="Abstract face outline with alignment guides" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">FACE / IDENTITY IMAGES</p><h3>Face morph &amp; swap review</h3><p>Inspect possible identity blending, face replacement, and editing artifacts in portraits and identity photos.</p></div>
+                    </article>
+                    <article class="future-card">
+                        <img class="future-art" src="{{ url_for('static', filename='img/roadmap-image.svg') }}" alt="Image under analysis with a highlighted area" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">IMAGE / SYNTHETIC MEDIA</p><h3>AI-generated image review</h3><p>Explore image-level clues and provenance signals for synthetic or heavily altered images, with clear limits on detection.</p></div>
+                    </article>
+                    <article class="future-card">
+                        <img class="future-art" src="{{ url_for('static', filename='img/roadmap-lipsync.svg') }}" alt="Audio waveform aligned with video frames" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">AUDIO + VIDEO</p><h3>Lip-sync &amp; media consistency</h3><p>Compare speech timing, mouth motion, and audio-video alignment to surface possible mismatches for closer inspection.</p></div>
+                    </article>
+                    <article class="future-card">
+                        <img class="future-art" src="{{ url_for('static', filename='img/roadmap-credentials.svg') }}" alt="Verified media provenance document and signature mark" loading="lazy">
+                        <div class="future-card-copy"><p class="future-tag">PROVENANCE / CONTEXT</p><h3>Content credentials viewer</h3><p>Read available signed provenance and edit history, while distinguishing verifiable records from missing or stripped metadata.</p></div>
                     </article>
                 </div>
+                <p class="roadmap-note">A missing credential or detector match is not, by itself, evidence that media is fake.</p>
             </section>
         </main>
 

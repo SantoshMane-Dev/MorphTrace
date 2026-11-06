@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Resize and compress JPG, PNG, and WebP images with MorphTrace">
+    <title>MorphTrace | Resize &amp; Compress</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% include "partials/visual_assets.html" %}
+</head>
+<body class="editorial-home tools-page">
+    <div class="paper-grain" aria-hidden="true"></div>
+    <div class="page-shell editorial-shell tools-shell">
+        <header class="topbar editorial-topbar">
+            <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+                {% include "partials/brand_scene.html" %}
+                <span class="editorial-wordmark">MorphTrace<small>IMAGE TOOLS</small></span>
+            </a>
+            <nav class="editorial-nav" aria-label="Main navigation">
+                <a class="nav-primary" href="{{ url_for('inspect') }}">Forensics <span aria-hidden="true">&#8594;</span></a>
+                <a href="{{ url_for('index') }}#tools">All tools</a>
+                <a href="{{ url_for('roadmap') }}">Upcoming features</a>
+            </nav>
+        </header>
+
+        <main class="tool-main">
+            <section class="tool-intro" aria-labelledby="resize-title">
+                <p class="section-index">IMAGE UTILITIES / 01</p>
+                <h1 id="resize-title">Resize without the guesswork.</h1>
+                <p>Set a maximum width and height, choose an output format, and download a resized copy. The original file is never changed.</p>
+            </section>
+
+            <form class="utility-form" action="{{ url_for('resize') }}" method="post" enctype="multipart/form-data">
+                <label class="utility-file" for="resize-image">
+                    <strong>Choose an image</strong>
+                    <small>JPG, PNG, or WebP / up to 16 MB</small>
+                    <input type="file" id="resize-image" name="image" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" required>
+                </label>
+                <div class="utility-fields">
+                    <label for="max-width">Maximum width <span>pixels</span>
+                        <input type="number" id="max-width" name="max_width" min="1" max="8192" value="1600" required>
+                    </label>
+                    <label for="max-height">Maximum height <span>pixels</span>
+                        <input type="number" id="max-height" name="max_height" min="1" max="8192" value="1600" required>
+                    </label>
+                    <label for="resize-format">Output format
+                        <select id="resize-format" name="output_format">
+                            <option value="webp">WebP</option>
+                            <option value="jpg">JPG</option>
+                            <option value="png">PNG</option>
+                        </select>
+                    </label>
+                    <label for="resize-quality">Quality <span>30–95 / JPG &amp; WebP</span>
+                        <input type="number" id="resize-quality" name="quality" min="30" max="95" value="85" required>
+                    </label>
+                </div>
+                <p class="utility-note">Images keep their aspect ratio and are only scaled down to fit the selected bounds. Embedded metadata is removed from the downloaded copy.</p>
+                {% if error %}<p class="converter-error" role="alert">{{ error }}</p>{% endif %}
+                <button class="converter-submit" type="submit">Resize and download <span aria-hidden="true">&#8594;</span></button>
+            </form>
+        </main>
+
+        <footer class="editorial-footer"><a href="{{ url_for('index') }}#tools">All image tools</a><span>OUTPUTS / JPG / PNG / WEBP</span></footer>
+    </div>
+</body>
+</html>

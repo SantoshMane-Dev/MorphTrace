@@ -219,4 +219,68 @@ document.addEventListener("DOMContentLoaded", () => {
 			}
 		});
 	});
+
+	const compareInputs = [
+		document.getElementById("compare-image-a"),
+		document.getElementById("compare-image-b"),
+	];
+	compareInputs.forEach((input) => {
+		if (!input) {
+			return;
+		}
+		const panel = input.closest(".compare-panel");
+		const preview = panel?.querySelector(".compare-preview img");
+		const info = panel?.querySelector(".compare-file-info");
+		let previewUrl = null;
+
+		input.addEventListener("change", () => {
+			const file = input.files?.[0];
+			if (!preview || !info) {
+				return;
+			}
+			if (previewUrl) {
+				URL.revokeObjectURL(previewUrl);
+				previewUrl = null;
+			}
+			preview.hidden = true;
+			preview.removeAttribute("src");
+			if (!file) {
+				info.textContent = "No image selected";
+				return;
+			}
+
+			const extension = file.name.split(".").pop()?.toLowerCase();
+			const allowedExtensions = ["jpg", "jpeg", "png", "webp"];
+			if (!allowedExtensions.includes(extension) || file.size > 16 * 1024 * 1024) {
+				info.textContent = file.size > 16 * 1024 * 1024
+					? "Choose an image under 16 MB"
+					: "Choose a JPG, PNG, or WebP image";
+				input.value = "";
+				return;
+			}
+
+			previewUrl = URL.createObjectURL(file);
+			const currentPreviewUrl = previewUrl;
+			info.textContent = "Loading image preview...";
+			preview.onload = () => {
+				if (previewUrl !== currentPreviewUrl) {
+					return;
+				}
+				preview.hidden = false;
+				info.textContent = `${file.name} · ${preview.naturalWidth} × ${preview.naturalHeight} · ${(file.size / 1024).toFixed(1)} KB`;
+			};
+			preview.onerror = () => {
+				if (previewUrl !== currentPreviewUrl) {
+					return;
+				}
+				preview.hidden = true;
+				preview.removeAttribute("src");
+				info.textContent = "This file could not be read as an image";
+				input.value = "";
+				URL.revokeObjectURL(currentPreviewUrl);
+				previewUrl = null;
+			};
+			preview.src = currentPreviewUrl;
+		});
+	});
 });

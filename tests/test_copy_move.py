@@ -1,6 +1,6 @@
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 
 from forensic.copy_move.analyzer import analyze_copy_move
 
@@ -60,3 +60,24 @@ def test_copy_move_rejects_clean_repetitive_patterns(tmp_path):
 
     assert result["matches"] < 8
     assert result["score"] == 0
+
+
+def test_copy_move_ignores_repeated_text_lines(tmp_path):
+    image = Image.new("RGB", (1200, 500), "#f5f1e8")
+    draw = ImageDraw.Draw(image)
+    try:
+        font = ImageFont.truetype("DejaVuSans-Bold.ttf", 48)
+    except OSError:
+        font = ImageFont.load_default()
+    phrase = "Akash hu toh a do baar count"
+    draw.text((80, 80), phrase, font=font, fill="#183638")
+    draw.text((80, 260), phrase, font=font, fill="#183638")
+    image_path = tmp_path / "repeated-text.png"
+    output_path = tmp_path / "copy_move.png"
+    image.save(image_path)
+
+    result = analyze_copy_move(image_path, output_path)
+
+    assert result["matches"] < 8
+    assert result["score"] == 0
+    assert result["suspicious_regions"] == []

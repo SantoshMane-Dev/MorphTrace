@@ -2,6 +2,7 @@
 import logging
 import os
 import re
+import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 from pathlib import Path
@@ -109,6 +110,10 @@ def create_app(test_config=None):
     def inspect():
         return render_template("inspect.html")
 
+    @app.get("/compare")
+    def compare():
+        return render_template("compare.html")
+
     @app.get("/roadmap")
     def roadmap():
         return render_template("roadmap.html")
@@ -182,7 +187,12 @@ def create_app(test_config=None):
                 else:
                     converted = converted.copy()
                 converted.save(output, format=target_format)
-        except (UnidentifiedImageError, OSError, ValueError) as error:
+        except (
+            UnidentifiedImageError,
+            OSError,
+            ValueError,
+            Image.DecompressionBombError,
+        ) as error:
             app.logger.info("Rejected invalid conversion upload: %s", error)
             return render_template(
                 "convert.html",
@@ -198,6 +208,153 @@ def create_app(test_config=None):
             as_attachment=True,
             download_name=download_name,
         )
+
+    @app.route("/resize", methods=["GET", "POST"])
+    def resize():
+        if request.method == "GET":
+            return render_template("resize.html")
+
+        uploaded_file = request.files.get("image")
+        if not uploaded_file or not uploaded_file.filename:
+            return render_template("resize.html", error="Choose an image to resize."), 400
+
+        safe_name = secure_filename(uploaded_file.filename)
+        expected_format = CONVERT_INPUT_FORMATS.get(Path(safe_name).suffix.lower())
+        output_choice = request.form.get("output_format", "webp").lower()
+        output_details = CONVERT_OUTPUT_FORMATS.get(output_choice)
+
+        if not expected_format:
+            return render_template(
+                "resize.html",
+                error="Choose a JPG, PNG, or WebP image.",
+            ), 400
+        if output_choice not in {"jpg", "png", "webp"} or not output_details:
+            return render_template(
+                "resize.html",
+                error="Choose JPG, PNG, or WebP as the output format.",
+            ), 400
+
+        try:
+            max_width = int(request.form.get("max_width", "1600"))
+            max_height = int(request.form.get("max_height", "1600"))
+            quality = int(request.form.get("quality", "85"))
+        except ValueError:
+            return render_template(
+                "resize.html",
+                error="Width, height, and quality must be whole numbers.",
+            ), 400
+
+        if not 1 <= max_width <= 8192 or not 1 <= max_height <= 8192:
+            return render_template(
+                "resize.html",
+                error="Width and height must be between 1 and 8192 pixels.",
+            ), 400
+        if not 30 <= quality <= 95:
+            return render_template(
+                "resize.html",
+                error="Quality must be between 30 and 95.",
+            ), 400
+
+        target_format, mimetype = output_details
+        output = BytesIO()
+        try:
+            with Image.open(uploaded_file.stream) as probe:
+                actual_format = probe.format
+                probe.verify()
+
+            if actual_format != expected_format:
+                return render_template(
+                    "resize.html",
+                    error="The image content does not match its file extension.",
+                ), 400
+
+            uploaded_file.stream.seek(0)
+            with Image.open(uploaded_file.stream) as source:
+                resized = ImageOps.exif_transpose(source)
+                resized.thumbnail(
+                    (max_width, max_height),
+                    Image.Resampling.LANCZOS,
+                )
+                if target_format == "JPEG":
+                    rgba_image = resized.convert("RGBA")
+                    flattened = Image.new("RGB", rgba_image.size, "white")
+                    flattened.paste(rgba_image, mask=rgba_image.getchannel("A"))
+                    resized = flattened
+                else:
+                    resized = resized.copy()
+
+                save_options = {"optimize": True}
+                if target_format in {"JPEG", "WEBP"}:
+                    save_options["quality"] = quality
+                resized.save(output, format=target_format, **save_options)
+        except (
+            UnidentifiedImageError,
+            OSError,
+            ValueError,
+            Image.DecompressionBombError,
+        ) as error:
+            app.logger.info("Rejected invalid resize upload: %s", error)
+            return render_template(
+                "resize.html",
+                error="That file could not be read as an image.",
+            ), 400
+
+        output.seek(0)
+        extension = "jpg" if target_format == "JPEG" else output_choice
+        response = send_file(
+            output,
+            mimetype=mimetype,
+            as_attachment=True,
+            download_name=f"{Path(safe_name).stem}-resized.{extension}",
+        )
+        return response
+
+    @app.route("/metadata", methods=["GET", "POST"])
+    def metadata_viewer():
+        if request.method == "GET":
+            return render_template("metadata.html")
+
+        uploaded_file = request.files.get("image")
+        if not uploaded_file or not uploaded_file.filename:
+            return render_template("metadata.html", error="Choose an image to inspect."), 400
+
+        safe_name = secure_filename(uploaded_file.filename)
+        expected_format = CONVERT_INPUT_FORMATS.get(Path(safe_name).suffix.lower())
+        if not expected_format:
+            return render_template(
+                "metadata.html",
+                error="Choose a JPG, PNG, or WebP image.",
+            ), 400
+
+        try:
+            with Image.open(uploaded_file.stream) as probe:
+                actual_format = probe.format
+                probe.verify()
+
+            if actual_format != expected_format:
+                return render_template(
+                    "metadata.html",
+                    error="The image content does not match its file extension.",
+                ), 400
+
+            uploaded_file.stream.seek(0)
+            with tempfile.TemporaryDirectory() as temporary_directory:
+                image_path = Path(temporary_directory) / safe_name
+                uploaded_file.save(image_path)
+                metadata = analyze_metadata(image_path)
+        except (
+            UnidentifiedImageError,
+            OSError,
+            ValueError,
+            Image.DecompressionBombError,
+        ) as error:
+            app.logger.info("Rejected invalid metadata upload: %s", error)
+            return render_template(
+                "metadata.html",
+                error="That file could not be read as an image.",
+            ), 400
+
+        return render_template("metadata.html", metadata=metadata)
 
     @app.post("/dataset/upload/<label>")
     def upload_dataset_images(label):

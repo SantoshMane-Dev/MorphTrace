@@ -1,0 +1,90 @@
+.brand-scene {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+}
+
+.brand-scene::before,
+.brand-scene::after {
+  content: none;
+}
+
+.scene-canvas {
+  position: absolute;
+  inset: -8px;
+  z-index: 1;
+}
+
+.scene-canvas canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.ambient-three-scene {
+  position: fixed;
+  top: 88px;
+  right: -40px;
+  z-index: 2;
+  width: clamp(260px, 30vw, 380px);
+  aspect-ratio: 1;
+  pointer-events: none;
+  opacity: 0.9;
+  filter: drop-shadow(0 14px 30px rgba(49, 92, 76, 0.16));
+}
+
+.ambient-three-scene .scene-canvas {
+  inset: 0;
+}
+
+.scene-fallback {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #315c4c;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, #fff7e8 0 2px, transparent 3px),
+    repeating-linear-gradient(35deg, transparent 0 5px, #315c4c 6px 7px, transparent 8px 12px),
+    #f2a7b5;
+  box-shadow: 0 0 0 5px rgba(242, 167, 181, 0.32);
+}
+
+.console-three-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.76;
+}
+
+.console-three-scene .scene-canvas {
+  inset: 5% 9%;
+}
+
+.console-three-scene .scene-fallback {
+  width: 90px;
+  height: 90px;
+  opacity: 0.28;
+}
+
+@media (max-width: 640px) {
+  .ambient-three-scene {
+    top: 104px;
+    right: -140px;
+    width: 250px;
+    opacity: 0.68;
+  }
+
+  .console-three-scene {
+    opacity: 0.54;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-canvas {
+    display: none;
+  }
+}

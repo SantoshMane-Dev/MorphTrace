@@ -92,11 +92,21 @@ def analyze_copy_move(image_path, output_path):
                 and target_extent[0] <= image.shape[1] * 0.75
                 and target_extent[1] <= image.shape[0] * 0.75
             )
+            minimum_extent = max(
+                32.0,
+                min(image.shape[1], image.shape[0]) * 0.12,
+            )
+            spatially_supported = all(
+                min(extent) >= minimum_extent
+                and max(extent) / max(min(extent), 1.0) <= 12.0
+                for extent in (source_extent, target_extent)
+            )
             plausible_scale = 0.5 <= transform_scale <= 2.0
             if (
                 inlier_count >= 8
                 and inlier_count / len(candidate_matches) >= 0.08
                 and localized_regions
+                and spatially_supported
                 and plausible_scale
             ):
                 good_matches = [candidate_matches[index] for index in inlier_indices]
