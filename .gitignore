@@ -3,6 +3,10 @@ __pycache__/
 *.pyc
 node_modules/
 
+# Local and generated training datasets
+data/casia/
+data/demo/
+
 uploads/*
 results/*
 
