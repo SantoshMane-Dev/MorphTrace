@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roadmap | MorphTrace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body class="landing-page editorial-home">
+    <div class="page-shell landing-shell editorial-shell">
+      <header class="topbar editorial-topbar">
+        <a class="editorial-brand" href="{{ url_for('index') }}"
+          ><span class="editorial-mark"
+            ><span></span><span></span><span></span></span
+          ><span class="editorial-wordmark"
+            >MorphTrace<small>IMAGE FORENSICS &amp; TOOLS</small></span
+          ></a
+        >
+        <nav class="editorial-nav">
+          <a href="{{ url_for('inspect') }}">Forensics</a
+          ><a href="{{ url_for('convert') }}">Convert</a
+          ><a href="{{ url_for('roadmap') }}">Roadmap</a>
+        </nav>
+      </header>
+      <main class="tools-directory">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">DEVELOPMENT NOTES</p>
+            <h2>On the roadmap.</h2>
+          </div>
+          <p class="section-aside">
+            Current focus<br />Image authenticity results
+          </p>
+        </div>
+        <div class="tools-grid">
+          <article class="tool-card tool-card-forensics">
+            <span class="tool-card-index">01 / AVAILABLE</span>
+            <h3>Image detector</h3>
+            <p>Upload an image and view the result returned by aiOrNot.py.</p>
+          </article>
+          <article class="tool-card tool-card-convert">
+            <span class="tool-card-index">02 / AVAILABLE</span>
+            <h3>Format converter</h3>
+            <p>Convert common image formats to PNG, JPG, WebP, or PDF.</p>
+          </article>
+          <article class="tool-card tool-card-roadmap">
+            <span class="tool-card-index">03 / PLANNED</span>
+            <h3>More media tools</h3>
+            <p>Additional media workflows can be added later.</p>
+          </article>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

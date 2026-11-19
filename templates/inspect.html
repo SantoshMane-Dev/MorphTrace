@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Check an image with MorphTrace's image authenticity detector.">
+  <title>Inspect an image | MorphTrace</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="landing-page editorial-home">
+  <div class="paper-grain" aria-hidden="true"></div>
+  <div class="page-shell landing-shell editorial-shell">
+    <header class="topbar editorial-topbar">
+      <a class="editorial-brand" href="{{ url_for('index') }}" aria-label="MorphTrace home">
+        <span class="editorial-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="editorial-wordmark">MorphTrace<small>IMAGE FORENSICS &amp; TOOLS</small></span>
+      </a>
+      <nav class="editorial-nav" aria-label="Main navigation">
+        <a href="{{ url_for('inspect') }}">Forensics</a><a href="{{ url_for('convert') }}">Convert</a><a href="{{ url_for('roadmap') }}">Roadmap</a>
+      </nav>
+    </header>
+    <main>
+      <section class="inspect-section" aria-labelledby="inspect-title">
+        <div class="section-heading">
+          <div><p class="section-index">IMAGE AUTHENTICITY CHECK</p><h2 id="inspect-title">Inspect an image.</h2></div>
+          <p class="section-aside">Upload one image<br>JPG / JPEG / PNG · 16 MB maximum</p>
+        </div>
+        <div class="inspect-layout">
+          <form class="upload-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+            <div class="upload-box editorial-drop-zone" role="group" aria-label="Image upload area">
+              <img class="upload-preview-image" alt="Selected image preview" hidden>
+              <div class="upload-trigger editorial-upload-trigger">
+                <span class="scan-glyph" aria-hidden="true"></span>
+                <span class="upload-title">Drop a frame for review</span>
+                <span class="upload-meta">or choose one from your device</span>
+                <span class="format-note">JPEG / PNG · UP TO 16 MB</span>
+                <input id="image" name="image" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required aria-label="Choose image">
+              </div>
+              <div class="upload-preview-caption" hidden>
+                <strong>IMAGE SELECTED</strong><span class="upload-preview-name"></span>
+                <button class="rechoose-image" type="button">Replace</button>
+              </div>
+            </div>
+            <div class="analyze-button-wrap">
+              <button class="editorial-analyze-button" type="submit">Analyze image <span aria-hidden="true">&#8594;</span></button>
+              <div class="progress-track" role="progressbar" aria-label="Upload and analysis progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-bar"></div></div>
+              <p class="progress-text" aria-live="polite">Select an image to begin.</p>
+            </div>
+          </form>
+          <aside class="signal-board">
+            <div class="signal-board-top"><span>DETECTOR STATUS</span><span class="signal-live"><i></i> READY</span></div>
+            <h3>One upload. One result.</h3>
+            <p>The uploaded image is sent to the same detector used by <code>aiOrNot.py</code>. MorphTrace displays the result returned by that detector.</p>
+            <div class="signal-divider"></div>
+            <p class="signal-disclaimer">The result and confidence are shown as returned by the detector. MorphTrace does not generate a separate score.</p>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

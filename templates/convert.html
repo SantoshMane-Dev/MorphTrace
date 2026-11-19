@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Convert | MorphTrace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body class="landing-page editorial-home">
+    <div class="page-shell landing-shell editorial-shell">
+      <header class="topbar editorial-topbar">
+        <a class="editorial-brand" href="{{ url_for('index') }}"
+          ><span class="editorial-mark"
+            ><span></span><span></span><span></span></span
+          ><span class="editorial-wordmark"
+            >MorphTrace<small>IMAGE FORENSICS &amp; TOOLS</small></span
+          ></a
+        >
+        <nav class="editorial-nav">
+          <a href="{{ url_for('inspect') }}">Forensics</a
+          ><a href="{{ url_for('convert') }}">Convert</a
+          ><a href="{{ url_for('roadmap') }}">Roadmap</a>
+        </nav>
+      </header>
+      <main class="inspect-section">
+        <div class="section-heading">
+          <div>
+            <p class="section-index">FILE UTILITY</p>
+            <h2>Format converter.</h2>
+          </div>
+          <p class="section-aside">JPG / PNG / WebP input</p>
+        </div>
+        <form
+          class="converter-form"
+          method="post"
+          enctype="multipart/form-data"
+        >
+          <label for="convert-image">Choose an image</label
+          ><input
+            id="convert-image"
+            name="image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            required
+          /><label for="output-format">Convert to</label
+          ><select id="output-format" name="output_format">
+            <option value="png">PNG</option>
+            <option value="jpg">JPG</option>
+            <option value="webp">WebP</option>
+            <option value="pdf">PDF</option></select
+          ><button class="editorial-analyze-button" type="submit">
+            Convert file <span aria-hidden="true">&#8594;</span></button
+          >{% if error %}
+          <p class="converter-error">{{ error }}</p>
+          {% endif %}
+        </form>
+      </main>
+    </div>
+  </body>
+</html>
