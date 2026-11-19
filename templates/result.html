@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Detection result | MorphTrace</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="page-shell results-shell">
+      <header class="results-topbar">
+        <a
+          href="{{ url_for('index') }}"
+          class="brand-name"
+          style="color: var(--text); text-decoration: none"
+          >MorphTrace</a
+        >
+        <a class="btn btn-ghost" href="{{ url_for('inspect') }}"
+          >Analyze another image</a
+        >
+      </header>
+      <main class="results-layout">
+        <div class="image-preview-wrap">
+          <img
+            class="image-preview"
+            src="{{ image_url }}"
+            alt="Image analyzed by MorphTrace"
+          />
+          {% if verdict is defined %}
+          <div class="result-overlay verdict-inconclusive">
+            <div>
+              <span class="result-overline">DETECTOR RESULT</span>
+              <h1>{{ verdict }}</h1>
+              <span class="verdict-context"
+                >Returned by the image detector</span
+              >
+            </div>
+            {% if confidence is not none %}
+            <div class="result-score-pill">
+              <strong
+                >{{ confidence }}{% if confidence is number %}%{% endif
+                %}</strong
+              ><span>Confidence</span>
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+        {% if error_message %}
+        <section class="result-highlight result-highlight--review">
+          <span class="result-highlight-label">ANALYSIS ERROR</span
+          ><strong>Could not complete the analysis</strong
+          ><span>{{ error_message }}</span>
+        </section>
+        {% else %}
+        <p class="result-disclaimer">
+          This page displays the detector's returned classification and
+          confidence. No additional MorphTrace verdict is calculated.
+        </p>
+        <section class="result-highlights">
+          <article class="result-highlight result-highlight--inconclusive">
+            <span class="result-highlight-label">CLASSIFICATION</span
+            ><strong>{{ verdict }}</strong><span>Detector's final label</span>
+          </article>
+          <article class="result-highlight">
+            <span class="result-highlight-label">CONFIDENCE</span
+            ><strong
+              >{% if confidence is not none %}{{ confidence }}{% if confidence
+              is number %}%{% endif %}{% else %}Not provided{% endif %}</strong
+            ><span>Detector-reported label confidence</span>
+          </article>
+        </section>
+        {% if ml_model or raw_score is not none %}
+        <div class="result-summary-row result-stats">
+          {% if ml_model %}
+          <div class="result-stat">
+            <span>Model output</span><strong>{{ ml_model }}</strong>
+          </div>
+          {% endif %} {% if raw_score is not none %}
+          <div class="result-stat">
+            <span>Raw result score</span><strong>{{ raw_score }}</strong>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %} {% if checks %}
+        <section class="analysis-grid">
+          {% for check in checks %}
+          <article class="analysis-panel">
+            <h2>{{ check.label }}</h2>
+            <p>{{ check.value }}</p>
+          </article>
+          {% endfor %}
+        </section>
+        {% endif %} {% if warnings %}
+        <section class="analysis-panel">
+          <h2>Detector notes</h2>
+          <ul>
+            {% for warning in warnings %}
+            <li>
+              {% if warning is mapping %}{{ warning.get('label',
+              warning.get('type', 'Note')) }}{% if warning.get('type') %} — {{
+              warning.get('type') }}{% endif %}{% else %}{{ warning }}{% endif
+              %}
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endif %} {% endif %}
+        <div class="result-retry">
+          <a class="btn" href="{{ url_for('inspect') }}"
+            >Analyze another image</a
+          ><a class="btn btn-ghost" href="{{ url_for('index') }}"
+            >Back to MorphTrace</a
+          >
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
